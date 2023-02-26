@@ -1,6 +1,6 @@
-﻿- Name: $MODNAME$
+﻿- Name: CollabLobbyUI
   Version: 1.0.0
-  DLL: bin/Debug/net452/$MODNAME$.dll
+  DLL: bin/Debug/net452/CollabLobbyUI.dll
   Dependencies:
     - Name: Everest
-      Version: 1.3164.0
+      Version: 1.3471.0
