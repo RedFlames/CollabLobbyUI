@@ -31,5 +31,22 @@ namespace Celeste.Mod.CollabLobbyUI {
             EnabledEntry.Disabled = CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true;
             // TODO: EnabledEntry.AddDescription(menu, "modoptions_celestenetclient_connectedhint".DialogClean());
         }
+
+        #region Key Bindings
+
+        [DefaultButtonBinding(0, Keys.M)]
+        public ButtonBinding ButtonNavMenu { get; set; }
+
+        public ButtonBinding ButtonNavNext { get; set; }
+
+        public ButtonBinding ButtonNavPrev { get; set; }
+
+        [DefaultButtonBinding(Buttons.A, Keys.Space)]
+        public ButtonBinding ButtonNavToggleItem { get; set; }
+
+        [DefaultButtonBinding(0, Keys.S)]
+        public ButtonBinding ButtonNavToggleSort { get; set; }
+
+        #endregion
     }
 }

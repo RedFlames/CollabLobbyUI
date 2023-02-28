@@ -11,7 +11,11 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
     public class NavPointer : Entity
     {
         public readonly Entity Target = null;
-        public readonly string Map = "";
+        public readonly string Map;
+        public readonly AreaData Area;
+        public readonly string CleanName;
+        public readonly string IconName;
+        public readonly MTexture Icon;
 
         public static readonly MTexture gui_Arrow = GFX.Gui["dotarrow_outline"];
         public static readonly MTexture gui_Cross = GFX.Gui["x"];
@@ -23,22 +27,31 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             AddTag(TagsExt.SubHUD);
             Target = target;
             Map = map;
+            Area = AreaDataExt.Get(map);
+            CleanName = Area?.Name?.DialogCleanOrNull(Dialog.Languages["english"]) ?? Map;
+            IconName = Area?.Icon;
+            Icon = !string.IsNullOrWhiteSpace(IconName) && GFX.Gui.Has(IconName) ? GFX.Gui[IconName] : null;
         }
 
         public override void Render()
         {
-            if (Engine.Scene is not Level level)
+            if (Engine.Scene is not Level level || !Active)
                 return;
 
             player = level.Tracker.GetEntity<Player>();
 
             base.Render();
-            drawArrowOrCross(Target, level, out Vector2 tPos);
+            bool visible = drawArrowOrCross(Target, level, out Vector2 tPos, out float angle);
 
-            ActiveFont.Draw($"{Map}", tPos, Vector2.Zero, new Vector2(0.5f, 0.5f), Color.White);
+            Vector2 justify = Vector2.UnitY/2;
+            if (visible)
+                justify.X = 0.5f;
+            else if (tPos.X > Engine.ViewWidth / 2)
+                justify.X = 1f;
+            ActiveFont.DrawOutline($"{CleanName}", tPos -= Vector2.UnitX.Rotate(angle) * 32f, justify, new Vector2(0.7f, 0.7f), Color.White, 0.5f, Color.Black);
         }
 
-        private bool drawArrowOrCross(Entity target, Level level, out Vector2 tPos, float scale = 1.0f, Color? color = null)
+        private bool drawArrowOrCross(Entity target, Level level, out Vector2 tPos, out float angle, float scale = 1.0f, Color? color = null)
         {
             Color col = color ?? Color.White;
 
@@ -47,7 +60,6 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
 
             Vector2 pointFrom = level.ScreenToWorld(Engine.Viewport.Bounds.Center.ToVector2());
             Vector2 pointTo = target.Center;
-            float angle;
 
             if (!onScreen)
             {
@@ -60,13 +72,37 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 gui_Cross.Draw(pos, gui_Cross.Center, col, scale);
 
                 angle = Calc.Angle(pointFrom, pointTo);
-                pos -= Vector2.UnitX.Rotate(angle) * scale;
+                pos -= Vector2.UnitX.Rotate(angle) * 32f;
 
             }
 
             gui_Arrow.Draw(pos, gui_Arrow.Center, col, scale, angle);
 
             return onScreen;
+        }
+    }
+
+    public class NavComparerIcons : IComparer<NavPointer>
+    {
+        public int Compare(NavPointer a, NavPointer b)
+        {
+            return string.Compare(a.IconName, b.IconName);
+        }
+    }
+
+    public class NavComparerSIDs : IComparer<NavPointer>
+    {
+        public int Compare(NavPointer a, NavPointer b)
+        {
+            return string.Compare(a.Map, b.Map);
+        }
+    }
+
+    public class NavComparerNames : IComparer<NavPointer>
+    {
+        public int Compare(NavPointer a, NavPointer b)
+        {
+            return string.Compare(a.CleanName, b.CleanName);
         }
     }
 }

@@ -32,11 +32,13 @@ namespace Celeste.Mod.CollabLobbyUI {
         private Assembly cu2_Asm;
         private Type cu2_ChapterPanelTrigger_type;
 
-        private Dictionary<Trigger, string> triggers;
+        private readonly Dictionary<Trigger, string> triggers = new();
         public int TriggerCount => triggers?.Count ?? 0;
         private Trigger NavigateTowardsMap;
 
         public readonly List<NavPointer> Trackers = new();
+
+        public NavMenu Menu;
 
         public bool CollabUtils2_Not_Found { get; private set; } = true;
 
@@ -66,14 +68,13 @@ namespace Celeste.Mod.CollabLobbyUI {
                 return;
             } else
             {
-                Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Found {cu2_ChapterPanelTrigger_name} as {cu2_ChapterPanelTrigger_type.FullName}");
+                Logger.Log(LogLevel.Info, "CollabLobbyUI", $"Found {cu2_ChapterPanelTrigger_name} as {cu2_ChapterPanelTrigger_type.FullName}");
             }
             CollabUtils2_Not_Found = false;
 
-            triggers = new();
-
             //Everest.Events.Level.OnLoadEntity += Level_OnLoadEntity;
             Everest.Events.Level.OnEnter += Level_OnEnter;
+            Everest.Events.Level.OnExit += Level_OnExit;
             Everest.Events.Player.OnSpawn += Player_OnSpawn;
             On.Celeste.Level.Render += LevelRender;
             On.Celeste.Trigger.ctor += Trigger_ctor;
@@ -104,6 +105,17 @@ namespace Celeste.Mod.CollabLobbyUI {
             return true;
         }
 
+        private void TryRemoveMenu(Level level)
+        {
+            if (Menu != null)
+            {
+                Logger.Log(LogLevel.Info, "CollabLobbyUI", $"Removing NavMenu {Menu}.");
+                Menu.IsActive = false;
+                level.Remove(Menu);
+                Menu = null;
+            }
+        }
+
         private void LevelRender(On.Celeste.Level.orig_Render orig, Level self)
         {
             orig(self);
@@ -116,6 +128,7 @@ namespace Celeste.Mod.CollabLobbyUI {
 
             if (triggers == null || triggers.Count == 0)
             {
+                TryRemoveMenu(level);
                 return;
             }
 
@@ -133,11 +146,18 @@ namespace Celeste.Mod.CollabLobbyUI {
                     Trigger t = kvp.Key;
                     string map = kvp.Value;
 
-                    NavPointer tracker = new Entities.NavPointer(t, map);
+                    NavPointer tracker = new NavPointer(t, map);
 
+                    tracker.Active = false;
                     Trackers.Add(tracker);
                     level.Add(tracker);
                 }
+            }
+
+            if (Menu == null || Menu.Scene != level)
+            {
+                Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Recreating NavMenu.");
+                level.Add(Menu = new NavMenu());
             }
 
             // TODO Gui
@@ -149,6 +169,14 @@ namespace Celeste.Mod.CollabLobbyUI {
             Trackers.Clear();
             if (!Enabled) return;
         }
+
+        private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
+        {
+            triggers.Clear();
+            Trackers.Clear();
+            TryRemoveMenu(level);
+        }
+
         private void Player_OnSpawn(Player obj)
         {
             if (!Enabled) return;
