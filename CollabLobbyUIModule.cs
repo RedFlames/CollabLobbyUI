@@ -37,6 +37,7 @@ namespace Celeste.Mod.CollabLobbyUI {
         private Trigger NavigateTowardsMap;
 
         public readonly List<NavPointer> Trackers = new();
+        private readonly HashSet<string> activeTrackers = new();
 
         public NavMenu Menu;
 
@@ -92,7 +93,18 @@ namespace Celeste.Mod.CollabLobbyUI {
 
         private bool ReadyOrDisable()
         {
-            if (!Enabled) return false;
+            if (!Enabled)
+            {
+                TryRemoveMenu();
+                foreach (var t in Trackers)
+                {
+                    t.Active = false;
+                    if (Engine.Scene is Level l)
+                        l.Remove(t);
+                }
+                Trackers.Clear();
+                return false;
+            }
 
             if (cu2_ChapterPanelTrigger_type == null)
             {
@@ -105,13 +117,15 @@ namespace Celeste.Mod.CollabLobbyUI {
             return true;
         }
 
-        private void TryRemoveMenu(Level level)
+        private void TryRemoveMenu(Level level = null)
         {
+            if (level == null && Engine.Scene is Level)
+                level = (Level) Engine.Scene;
             if (Menu != null)
             {
                 Logger.Log(LogLevel.Info, "CollabLobbyUI", $"Removing NavMenu {Menu}.");
                 Menu.IsActive = false;
-                level.Remove(Menu);
+                level?.Remove(Menu);
                 Menu = null;
             }
         }
@@ -148,7 +162,7 @@ namespace Celeste.Mod.CollabLobbyUI {
 
                     NavPointer tracker = new NavPointer(t, map);
 
-                    tracker.Active = false;
+                    tracker.Active = activeTrackers.Contains(map);
                     Trackers.Add(tracker);
                     level.Add(tracker);
                 }
@@ -180,6 +194,12 @@ namespace Celeste.Mod.CollabLobbyUI {
         private void Player_OnSpawn(Player obj)
         {
             if (!Enabled) return;
+            activeTrackers.Clear();
+            foreach (var t in Trackers)
+            {
+                if (!string.IsNullOrEmpty(t.Map) && t.Active)
+                    activeTrackers.Add(t.Map);
+            }
             Trackers.Clear();
         }
 

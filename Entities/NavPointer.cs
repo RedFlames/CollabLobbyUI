@@ -17,9 +17,6 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         public readonly string IconName;
         public readonly MTexture Icon;
 
-        public static readonly MTexture gui_Arrow = GFX.Gui["dotarrow_outline"];
-        public static readonly MTexture gui_Cross = GFX.Gui["x"];
-
         private Player player;
 
         public NavPointer(Entity target = null, string map = "")
@@ -48,7 +45,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 justify.X = 0.5f;
             else if (tPos.X > Engine.ViewWidth / 2)
                 justify.X = 1f;
-            ActiveFont.DrawOutline($"{CleanName}", tPos -= Vector2.UnitX.Rotate(angle) * 32f, justify, new Vector2(0.7f, 0.7f), Color.White, 0.5f, Color.Black);
+            ActiveFont.DrawOutline($"{CleanName}", tPos - Vector2.UnitX.Rotate(angle) * 48f, justify, new Vector2(0.7f, 0.7f), Color.White, 0.5f, Color.Black);
         }
 
         private bool drawArrowOrCross(Entity target, Level level, out Vector2 tPos, out float angle, float scale = 1.0f, Color? color = null)
@@ -69,14 +66,14 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             {
                 if (player != null) pointFrom = player.Center;
 
-                gui_Cross.Draw(pos, gui_Cross.Center, col, scale);
+                //CollabLobbyUIUtils.Gui_Cross.Draw(pos, CollabLobbyUIUtils.Gui_Cross.Center, col, scale);
 
                 angle = Calc.Angle(pointFrom, pointTo);
-                pos -= Vector2.UnitX.Rotate(angle) * 32f;
-
+                pos -= Vector2.UnitX.Rotate(angle) * 36f;
+                col = Color.Orange;
             }
 
-            gui_Arrow.Draw(pos, gui_Arrow.Center, col, scale, angle);
+            CollabLobbyUIUtils.Gui_Arrow.Draw(pos, CollabLobbyUIUtils.Gui_Arrow.Center, col, scale, angle);
 
             return onScreen;
         }

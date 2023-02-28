@@ -86,7 +86,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         }
 
         public NavMenu() {
-            AddTag(TagsExt.SubHUD);
+            AddTag(Tags.HUD);
         }
 
         public override void Update()
@@ -107,10 +107,10 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
 
             if (IsActive)
             {
-                if (MInput.Keyboard.Pressed(Keys.Down))
+                if (Settings.ButtonNavDown.Pressed)
                 {
                     EntrySelected++;
-                } else if (MInput.Keyboard.Pressed(Keys.Up))
+                } else if (Settings.ButtonNavUp.Pressed)
                 {
                     EntrySelected--;
                 }
@@ -126,9 +126,16 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 {
                     Module.Trackers[EntrySelected].Active = !Module.Trackers[EntrySelected].Active;
                 }
+
+                if (Settings.ButtonNavClearAll.Pressed)
+                {
+                    bool targetValue = Module.Trackers.All(t => !t.Active);
+                    foreach (var t in Module.Trackers)
+                        t.Active = targetValue;
+                }
             }
 
-            if (Settings.ButtonNavMenu.Pressed || MInput.Keyboard.Released(Keys.Escape))
+            if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (Active && Settings.ButtonNavMenuClose.Released))
             {
                 IsActive = !IsActive;
             }
@@ -160,24 +167,40 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             for (int i = startAt; i < endAt; i++)
             {
                 NavPointer p = Module.Trackers[i];
+                bool isOn = p.Active;
 
                 if (i == EntrySelected)
                     Draw.Rect(PositionX, y, ListWidth + 64, EntryHeight, ColorUI);
 
                 Vector2 pos = new Vector2(PositionX, y);
+                if (isOn)
+                {
+                    CollabLobbyUIUtils.Gui_Arrow.Draw(pos, Vector2.Zero, Color.Orange, IconHeight / CollabLobbyUIUtils.Gui_Arrow.Height);
+                }
+                pos.X += CollabLobbyUIUtils.Gui_Arrow.Width * IconHeight / CollabLobbyUIUtils.Gui_Arrow.Height;
+
                 if (p.Icon != null)
                 {
                     p.Icon.Draw(pos, Vector2.Zero, Color.White, IconHeight / p.Icon.Height);
+                    pos.X += p.Icon.Width * IconHeight / p.Icon.Height;
                 }
-                ActiveFont.Draw(p.CleanName, new Vector2(pos.X + p.Icon.Width * IconHeight / p.Icon.Height, pos.Y + EntryHeight / 2), Vector2.UnitY/2f, Vector2.One * .3f, i == EntrySelected ? Color.Gold : Color.White);
+                pos.Y += EntryHeight / 2;
+                ActiveFont.Draw(p.CleanName, pos, Vector2.UnitY/2f, Vector2.One * .3f, i == EntrySelected ? Color.Gold : isOn ? Color.Lerp(Color.Orange, Color.White, .5f) : Color.White);
                 y += EntryHeight;
+            }
+
+            if (endAt > startAt && Module.Trackers.Count > endAt)
+            {
+                ActiveFont.Draw($"+{Module.Trackers.Count - endAt}", new Vector2(PositionX + ListWidth + 64, y - EntryHeight), new Vector2(1f, 0.5f), Vector2.One * .07f,Color.Orange);
             }
 
             ButtonBinding vbT = Settings.ButtonNavToggleItem;
             string toggleBind = MInput.ControllerHasFocus ? $"({vbT.Buttons.FirstOrDefault()})" : $"[{vbT.Keys.FirstOrDefault()}]";
             ButtonBinding vbS = Settings.ButtonNavToggleSort;
             string toggleSort = MInput.ControllerHasFocus ? $"({vbS.Buttons.FirstOrDefault()})" : $"[{vbS.Keys.FirstOrDefault()}]";
-            ActiveFont.DrawOutline($"Press {toggleBind} to select/deselect an option. {toggleSort} for sort modes.", new Vector2(PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
+            ButtonBinding vbC = Settings.ButtonNavClearAll;
+            string toggleClear = MInput.ControllerHasFocus ? $"({vbC.Buttons.FirstOrDefault()})" : $"[{vbC.Keys.FirstOrDefault()}]";
+            ActiveFont.DrawOutline($"Press {toggleBind} to select/deselect an option. {toggleSort} for sort modes. {toggleClear} to clear/select ALL.", new Vector2(PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
         }
     }
 }

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 
 namespace Celeste.Mod.CollabLobbyUI {
-    //[SettingName("modoptions_collablobbyui_title")]
     public class CollabLobbyUISettings : EverestModuleSettings
     {
         [SettingIgnore]
@@ -18,18 +17,19 @@ namespace Celeste.Mod.CollabLobbyUI {
         [YamlIgnore]
         public bool Enabled { get => UserEnabled && !(CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true); set => UserEnabled = value; }
 
+        public bool EnableOnDebugMap { get; set; } = true;
+
         [YamlIgnore, SettingIgnore]
         public TextMenu.OnOff EnabledEntry { get; protected set; }
 
         public void CreateEnabledEntry(TextMenu menu, bool inGame)
         {
-            // "modoptions_collablobbyui_connected".DialogClean()
             menu.Add(
-                (EnabledEntry = new TextMenu.OnOff("Enabled", Enabled))
+                (EnabledEntry = new TextMenu.OnOff("MODOPTIONS_COLLABLOBBYUI_ENABLED".DialogClean(), Enabled))
                 .Change(v => UserEnabled = v)
             );
             EnabledEntry.Disabled = CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true;
-            // TODO: EnabledEntry.AddDescription(menu, "modoptions_celestenetclient_connectedhint".DialogClean());
+            EnabledEntry.AddDescription(menu, "MODOPTIONS_COLLABLOBBYUI_ENABLEDHINT".DialogClean());
         }
 
         #region Key Bindings
@@ -37,15 +37,27 @@ namespace Celeste.Mod.CollabLobbyUI {
         [DefaultButtonBinding(0, Keys.M)]
         public ButtonBinding ButtonNavMenu { get; set; }
 
-        public ButtonBinding ButtonNavNext { get; set; }
+        [DefaultButtonBinding(Buttons.B, Keys.M)]
+        public ButtonBinding ButtonNavMenuClose { get; set; }
 
-        public ButtonBinding ButtonNavPrev { get; set; }
+        //public ButtonBinding ButtonNavNext { get; set; }
+
+        //public ButtonBinding ButtonNavPrev { get; set; }
 
         [DefaultButtonBinding(Buttons.A, Keys.Space)]
         public ButtonBinding ButtonNavToggleItem { get; set; }
 
         [DefaultButtonBinding(0, Keys.S)]
         public ButtonBinding ButtonNavToggleSort { get; set; }
+
+        [DefaultButtonBinding(0, Keys.R)]
+        public ButtonBinding ButtonNavClearAll { get; set; }
+
+        [DefaultButtonBinding(Buttons.LeftThumbstickUp, Keys.Up)]
+        public ButtonBinding ButtonNavUp { get; set; }
+
+        [DefaultButtonBinding(Buttons.LeftThumbstickDown, Keys.Down)]
+        public ButtonBinding ButtonNavDown { get; set; }
 
         #endregion
     }
