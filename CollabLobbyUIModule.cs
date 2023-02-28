@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Celeste.Mod.CollabLobbyUI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
@@ -15,7 +16,13 @@ namespace Celeste.Mod.CollabLobbyUI {
         public override Type SettingsType => typeof(CollabLobbyUISettings);
         public static CollabLobbyUISettings Settings => (CollabLobbyUISettings) Instance._Settings;
 
-        private MTexture arrow;
+        public bool Enabled
+        {
+            get => Settings.Enabled;
+            set => Settings.Enabled = value;
+        }
+
+        private Player player;
 
         private const string cu2_modName = "CollabUtils2";
         private const string cu2_ChapterPanelTrigger_name = "Celeste.Mod.CollabUtils2.Triggers.ChapterPanelTrigger";
@@ -25,19 +32,16 @@ namespace Celeste.Mod.CollabLobbyUI {
         private Assembly cu2_Asm;
         private Type cu2_ChapterPanelTrigger_type;
 
-        private List<Trigger> triggers;
-        private Dictionary<Trigger, string> triggerData;
+        private Dictionary<Trigger, string> triggers;
+        public int TriggerCount => triggers?.Count ?? 0;
         private Trigger NavigateTowardsMap;
+
+        public readonly List<NavPointer> Trackers = new();
 
         public bool CollabUtils2_Not_Found { get; private set; } = true;
 
         public CollabLobbyUIModule() {
             Instance = this;
-        }
-
-        public override void LoadContent(bool firstLoad)
-        {
-            arrow = GFX.Gui["dotarrow_outline"];
         }
 
         private void Bail_Loading(string msg = "")
@@ -66,7 +70,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             }
             CollabUtils2_Not_Found = false;
 
-            triggerData = new();
+            triggers = new();
 
             //Everest.Events.Level.OnLoadEntity += Level_OnLoadEntity;
             Everest.Events.Level.OnEnter += Level_OnEnter;
@@ -81,27 +85,18 @@ namespace Celeste.Mod.CollabLobbyUI {
 
             if (self.GetType() == cu2_ChapterPanelTrigger_type)
             {
-                triggerData[self] = data.Attr("map");
+                triggers[self] = data.Attr("map");
             }
-        }
-
-        private void grabTriggers(Level level)
-        {
-            triggers = level.Entities.OfType<Trigger>().Where(e => e.GetType() == cu2_ChapterPanelTrigger_type).ToList();
-
-            if (triggers == null)
-                triggers = new List<Trigger>();
-            Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Found {triggers.Count} entities of type {cu2_ChapterPanelTrigger_name}.");
         }
 
         private bool ReadyOrDisable()
         {
-            if (!Settings.Enabled) return false;
+            if (!Enabled) return false;
 
             if (cu2_ChapterPanelTrigger_type == null)
             {
                 Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"{cu2_ChapterPanelTrigger_name} Type object is null, disabling myself.");
-                Settings.Enabled = false;
+                Enabled = false;
                 CollabUtils2_Not_Found = true;
                 return false;
             }
@@ -124,58 +119,40 @@ namespace Celeste.Mod.CollabLobbyUI {
                 return;
             }
 
-            NavigateTowardsMap = triggers[0];
+            player = level.Tracker.GetEntity<Player>();
 
-            if (NavigateTowardsMap != null)
+            if (Trackers.Count == 0)
             {
-                Vector2 pos;
-                bool outsideOfScreen = getClampedScreenPos(NavigateTowardsMap, level, out pos);
-                Draw.SpriteBatch.Begin(0, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Engine.ScreenMatrix);
-                arrow.Draw(pos, arrow.Center, Color.White, 1.5f, Calc.Angle(level.ScreenToWorld(Engine.Viewport.Bounds.Center.ToVector2()), NavigateTowardsMap.Center));
-                Draw.SpriteBatch.End();
+                foreach (Trigger t in triggers.Keys.Where(k => k.Scene != level).ToArray())
+                {
+                    triggers.Remove(t);
+                }
+
+                foreach (KeyValuePair<Trigger, string> kvp in triggers)
+                {
+                    Trigger t = kvp.Key;
+                    string map = kvp.Value;
+
+                    NavPointer tracker = new Entities.NavPointer(t, map);
+
+                    Trackers.Add(tracker);
+                    level.Add(tracker);
+                }
             }
 
-            Draw.SpriteBatch.Begin(0, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Engine.ScreenMatrix);
-            
-            foreach (KeyValuePair<Trigger, string> kvp in triggerData)
-            {
-                Trigger t = kvp.Key;
-                string map = kvp.Value;
-                Vector2 pos;
-                bool outsideOfScreen = getClampedScreenPos(t, level, out pos);
-                arrow.Draw(pos, arrow.Center, Color.White, 1.0f, Calc.Angle(level.ScreenToWorld(Engine.Viewport.Bounds.Center.ToVector2()), t.Center));
-                ActiveFont.Draw($"{(outsideOfScreen ? 0 : 1)} {map}", pos, Vector2.Zero, new Vector2(0.5f, 0.5f), Color.LightPink);
-            }
-            Draw.SpriteBatch.End();
-        }
-
-        private bool getClampedScreenPos(Entity e, Level l, out Vector2 pos)
-        {
-            if (e == null || l == null)
-            {
-                pos = Vector2.Zero;
-                return false;
-            }
-            Vector2 posScreen = l.WorldToScreen(e.Center);
-            pos = posScreen.Clamp(
-                32f, 32f,
-                1920f - 32f, 1080f - 32f
-            );
-            return pos.Equals(posScreen);
+            // TODO Gui
         }
 
         private void Level_OnEnter(Session session, bool fromSaveData)
         {
-            triggers = null;
-            //if (!Settings.Enabled) return;
-
+            triggers.Clear();
+            Trackers.Clear();
+            if (!Enabled) return;
         }
         private void Player_OnSpawn(Player obj)
         {
-            triggers = null;
-            if (obj.Scene is Level level)
-                grabTriggers(level);
-            //if (!Settings.Enabled) return;
+            if (!Enabled) return;
+            Trackers.Clear();
         }
 
         public override void Unload() {

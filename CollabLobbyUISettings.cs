@@ -12,9 +12,24 @@ namespace Celeste.Mod.CollabLobbyUI {
     //[SettingName("modoptions_collablobbyui_title")]
     public class CollabLobbyUISettings : EverestModuleSettings
     {
-        private bool enabled = true;
+        [SettingIgnore]
+        public bool UserEnabled { get; set; } = true;
 
-        // TODO: make an entry that gets disable when prerequisites not met; make yaml-setting property separately
-        public bool Enabled { get => enabled && !(CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true); set => enabled = value; }
+        [YamlIgnore]
+        public bool Enabled { get => UserEnabled && !(CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true); set => UserEnabled = value; }
+
+        [YamlIgnore, SettingIgnore]
+        public TextMenu.OnOff EnabledEntry { get; protected set; }
+
+        public void CreateEnabledEntry(TextMenu menu, bool inGame)
+        {
+            // "modoptions_collablobbyui_connected".DialogClean()
+            menu.Add(
+                (EnabledEntry = new TextMenu.OnOff("Enabled", Enabled))
+                .Change(v => UserEnabled = v)
+            );
+            EnabledEntry.Disabled = CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true;
+            // TODO: EnabledEntry.AddDescription(menu, "modoptions_celestenetclient_connectedhint".DialogClean());
+        }
     }
 }
