@@ -107,7 +107,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
 
             if (IsActive)
             {
-                if (Settings.ButtonNavDown.Repeating)
+                if (Settings.ButtonNavDown.Pressed)
                 {
                     EntrySelected++;
                 } else if (Settings.ButtonNavUp.Pressed)
@@ -135,11 +135,11 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 }
             }
 
-            if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (Active && Settings.ButtonNavMenuClose.Released))
+            if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (IsActive && Settings.ButtonNavMenuClose.Released))
             {
                 IsActive = !IsActive;
-                Settings.ButtonNavDown.SetRepeat(.6f);
-                Settings.ButtonNavUp.SetRepeat(.6f);
+                Settings.ButtonNavDown.SetRepeat(.25f);
+                Settings.ButtonNavUp.SetRepeat(.25f);
             }
         }
 

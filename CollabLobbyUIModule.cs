@@ -60,7 +60,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             EverestModule collabUtils2 = Everest.Modules.FirstOrDefault(module => module.Metadata?.Name == cu2_modName);
             if (collabUtils2 == null || (cu2_Asm = collabUtils2?.GetType().Assembly) == null)
             {
-                Bail_Loading();
+                Bail_Loading("{cu2_modName} Module not found.");
                 return;
             }
             cu2_ChapterPanelTrigger_type = cu2_Asm.GetType(cu2_ChapterPanelTrigger_name);
