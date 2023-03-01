@@ -107,7 +107,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
 
             if (IsActive)
             {
-                if (Settings.ButtonNavDown.Pressed)
+                if (Settings.ButtonNavDown.Repeating)
                 {
                     EntrySelected++;
                 } else if (Settings.ButtonNavUp.Pressed)
@@ -138,6 +138,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (Active && Settings.ButtonNavMenuClose.Released))
             {
                 IsActive = !IsActive;
+                Settings.ButtonNavDown.SetRepeat(.6f);
+                Settings.ButtonNavUp.SetRepeat(.6f);
             }
         }
 
@@ -191,7 +193,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
 
             if (endAt > startAt && Module.Trackers.Count > endAt)
             {
-                ActiveFont.Draw($"+{Module.Trackers.Count - endAt}", new Vector2(PositionX + ListWidth + 64, y - EntryHeight), new Vector2(1f, 0.5f), Vector2.One * .07f,Color.Orange);
+                ActiveFont.Draw($"+{Module.Trackers.Count - endAt}", new Vector2(PositionX + ListWidth + 32, y - EntryHeight/2), new Vector2(1f, 0.5f), Vector2.One * .3f,Color.Orange);
             }
 
             ButtonBinding vbT = Settings.ButtonNavToggleItem;

@@ -18,6 +18,7 @@ namespace Celeste.Mod.CollabLobbyUI {
         public bool Enabled { get => UserEnabled && !(CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true); set => UserEnabled = value; }
 
         public bool EnableOnDebugMap { get; set; } = true;
+        public bool AlwaysShowAllOnDebugMap { get; set; } = true;
 
         [YamlIgnore, SettingIgnore]
         public TextMenu.OnOff EnabledEntry { get; protected set; }

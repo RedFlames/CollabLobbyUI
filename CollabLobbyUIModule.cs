@@ -41,6 +41,8 @@ namespace Celeste.Mod.CollabLobbyUI {
 
         public NavMenu Menu;
 
+        public DebugComponent DebugMap;
+
         public bool CollabUtils2_Not_Found { get; private set; } = true;
 
         public CollabLobbyUIModule() {
@@ -79,6 +81,9 @@ namespace Celeste.Mod.CollabLobbyUI {
             Everest.Events.Player.OnSpawn += Player_OnSpawn;
             On.Celeste.Level.Render += LevelRender;
             On.Celeste.Trigger.ctor += Trigger_ctor;
+
+            if (DebugMap == null)
+                Celeste.Instance.Components.Add(DebugMap = new(Celeste.Instance));
         }
 
         private void Trigger_ctor(On.Celeste.Trigger.orig_ctor orig, Trigger self, EntityData data, Vector2 offset)
