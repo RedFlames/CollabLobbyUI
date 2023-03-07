@@ -41,9 +41,9 @@ namespace Celeste.Mod.CollabLobbyUI {
         [DefaultButtonBinding(Buttons.B, Keys.M)]
         public ButtonBinding ButtonNavMenuClose { get; set; }
 
-        //public ButtonBinding ButtonNavNext { get; set; }
+        public ButtonBinding ButtonNavNext { get; set; }
 
-        //public ButtonBinding ButtonNavPrev { get; set; }
+        public ButtonBinding ButtonNavPrev { get; set; }
 
         [DefaultButtonBinding(Buttons.A, Keys.Space)]
         public ButtonBinding ButtonNavToggleItem { get; set; }
@@ -59,6 +59,9 @@ namespace Celeste.Mod.CollabLobbyUI {
 
         [DefaultButtonBinding(Buttons.LeftThumbstickDown, Keys.Down)]
         public ButtonBinding ButtonNavDown { get; set; }
+
+        [DefaultButtonBinding(Buttons.B, Keys.T)]
+        public ButtonBinding ButtonNavTeleport { get; set; }
 
         #endregion
     }

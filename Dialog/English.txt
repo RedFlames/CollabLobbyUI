@@ -30,3 +30,4 @@
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavClearAll= 			Nav Menu: Clear/Select all
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavUp=				Nav Menu: Up
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavDown=				Nav Menu: Down
+	MODOPTIONS_COLLABLOBBYUI_ButtonNavTeleport=				Nav Menu: Teleport

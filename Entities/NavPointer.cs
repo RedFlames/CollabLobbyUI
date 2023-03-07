@@ -83,7 +83,9 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
     {
         public int Compare(NavPointer a, NavPointer b)
         {
-            return string.Compare(a.IconName, b.IconName);
+            int compI = string.Compare(a.IconName, b.IconName);
+            int compN = string.Compare(a.CleanName, b.CleanName);
+            return compI == 0 ? (compN == 0 ? string.Compare(a.Map, b.Map) : compN) : compI;
         }
     }
 
@@ -99,7 +101,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
     {
         public int Compare(NavPointer a, NavPointer b)
         {
-            return string.Compare(a.CleanName, b.CleanName);
+            int compN = string.Compare(a.CleanName, b.CleanName);
+            return compN == 0 ? string.Compare(a.Map, b.Map) : compN;
         }
     }
 }

@@ -39,6 +39,8 @@ namespace Celeste.Mod.CollabLobbyUI {
         public readonly List<NavPointer> Trackers = new();
         private readonly HashSet<string> activeTrackers = new();
 
+        public int entrySelected = 0;
+
         public NavMenu Menu;
 
         public DebugComponent DebugMap;
@@ -176,10 +178,8 @@ namespace Celeste.Mod.CollabLobbyUI {
             if (Menu == null || Menu.Scene != level)
             {
                 Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Recreating NavMenu.");
-                level.Add(Menu = new NavMenu());
+                level.Add(Menu = new NavMenu(entrySelected));
             }
-
-            // TODO Gui
         }
 
         private void Level_OnEnter(Session session, bool fromSaveData)
@@ -187,6 +187,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             triggers.Clear();
             Trackers.Clear();
             if (!Enabled) return;
+            entrySelected = 0;
         }
 
         private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
@@ -194,6 +195,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             triggers.Clear();
             Trackers.Clear();
             TryRemoveMenu(level);
+            entrySelected = 0;
         }
 
         private void Player_OnSpawn(Player obj)

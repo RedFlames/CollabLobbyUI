@@ -46,9 +46,10 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                     entrySelected = 0;
                 else
                     entrySelected = value;
+                Module.entrySelected = value;
             }
         }
-        public int entrySelected = 0;
+        private int entrySelected = 0;
 
         private IComparer<NavPointer>[] comparers = new IComparer<NavPointer>[]
         {
@@ -85,8 +86,10 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             }
         }
 
-        public NavMenu() {
+        public NavMenu(int selected = 0) {
             AddTag(Tags.HUD);
+            EntrySelected = selected;
+            Module.Trackers.Sort(comparers[_useComparer]);
         }
 
         public override void Update()
@@ -133,6 +136,27 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                     foreach (var t in Module.Trackers)
                         t.Active = targetValue;
                 }
+
+                if (Settings.ButtonNavTeleport.Pressed && level.Session != null && Module.Trackers[EntrySelected]?.Target != null)
+                {
+                    level.Session.RespawnPoint = null;
+                    Engine.Scene = new LevelLoader(level.Session, Module.Trackers[EntrySelected].Target.Position);
+                }
+            }
+
+            if (Settings.ButtonNavNext.Released)
+            {
+                EntrySelected++;
+                foreach (var t in Module.Trackers)
+                    t.Active = false;
+                Module.Trackers[EntrySelected].Active = true;
+            }
+            else if (Settings.ButtonNavPrev.Released)
+            {
+                EntrySelected--;
+                foreach (var t in Module.Trackers)
+                    t.Active = false;
+                Module.Trackers[EntrySelected].Active = true;
             }
 
             if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (IsActive && Settings.ButtonNavMenuClose.Released))
@@ -141,6 +165,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 Settings.ButtonNavDown.SetRepeat(.25f);
                 Settings.ButtonNavUp.SetRepeat(.25f);
             }
+
+
         }
 
         public override void Render()
@@ -202,7 +228,9 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             string toggleSort = MInput.ControllerHasFocus ? $"({vbS.Buttons.FirstOrDefault()})" : $"[{vbS.Keys.FirstOrDefault()}]";
             ButtonBinding vbC = Settings.ButtonNavClearAll;
             string toggleClear = MInput.ControllerHasFocus ? $"({vbC.Buttons.FirstOrDefault()})" : $"[{vbC.Keys.FirstOrDefault()}]";
-            ActiveFont.DrawOutline($"Press {toggleBind} to select/deselect an option. {toggleSort} for sort modes. {toggleClear} to clear/select ALL.", new Vector2(PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
+            ButtonBinding vbTp = Settings.ButtonNavClearAll;
+            string teleportBind = MInput.ControllerHasFocus ? $"({vbTp.Buttons.FirstOrDefault()})" : $"[{vbTp.Keys.FirstOrDefault()}]";
+            ActiveFont.DrawOutline($"{toggleBind}: Entry On/Off. {teleportBind}: Teleport. {toggleSort}: Sort modes. {toggleClear}: Clear/Select ALL.", new Vector2(PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
         }
     }
 }
