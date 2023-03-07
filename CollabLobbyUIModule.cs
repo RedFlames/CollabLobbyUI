@@ -167,6 +167,9 @@ namespace Celeste.Mod.CollabLobbyUI {
                     Trigger t = kvp.Key;
                     string map = kvp.Value;
 
+                    if (!level.IsInBounds(t))
+                        continue;
+
                     NavPointer tracker = new NavPointer(t, map);
 
                     tracker.Active = activeTrackers.Contains(map);
