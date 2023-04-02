@@ -230,7 +230,14 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             string toggleClear = MInput.ControllerHasFocus ? $"({vbC.Buttons.FirstOrDefault()})" : $"[{vbC.Keys.FirstOrDefault()}]";
             ButtonBinding vbTp = Settings.ButtonNavClearAll;
             string teleportBind = MInput.ControllerHasFocus ? $"({vbTp.Buttons.FirstOrDefault()})" : $"[{vbTp.Keys.FirstOrDefault()}]";
-            ActiveFont.DrawOutline($"{toggleBind}: Entry On/Off. {teleportBind}: Teleport. {toggleSort}: Sort modes. {toggleClear}: Clear/Select ALL.", new Vector2(PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
+
+            string tips0 = Dialog.Get("COLLABLOBBYUI_Nav_Tips0");
+            string tips1 = Dialog.Get("COLLABLOBBYUI_Nav_Tips1");
+            string tips2 = Dialog.Get("COLLABLOBBYUI_Nav_Tips2");
+            string tips3 = Dialog.Get("COLLABLOBBYUI_Nav_Tips3");
+            string tips4 = Dialog.Get("COLLABLOBBYUI_Nav_Tips4");
+            string allTips = tips0 + toggleBind + tips1 + teleportBind + tips2 + toggleSort + tips3 + toggleClear + tips4;
+            ActiveFont.DrawOutline(allTips, new Vector2(PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
         }
     }
 }

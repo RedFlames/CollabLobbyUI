@@ -25,7 +25,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             Target = target;
             Map = map;
             Area = AreaDataExt.Get(map);
-            CleanName = Area?.Name?.DialogCleanOrNull(Dialog.Languages["english"]) ?? Map;
+            CleanName = Area?.Name?.DialogCleanOrNull()?? Map;
             IconName = Area?.Icon;
             Icon = !string.IsNullOrWhiteSpace(IconName) && GFX.Gui.Has(IconName) ? GFX.Gui[IconName] : null;
         }

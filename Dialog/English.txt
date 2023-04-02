@@ -31,3 +31,8 @@
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavUp=				Nav Menu: Up
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavDown=				Nav Menu: Down
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavTeleport=				Nav Menu: Teleport
+	COLLABLOBBYUI_Nav_Tips0= 
+	COLLABLOBBYUI_Nav_Tips1= : Entry On/Off. 
+	COLLABLOBBYUI_Nav_Tips2= : Teleport. 
+	COLLABLOBBYUI_Nav_Tips3= : Sort modes. 
+	COLLABLOBBYUI_Nav_Tips4= : Clear/Select ALL.
