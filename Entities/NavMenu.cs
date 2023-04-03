@@ -201,6 +201,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                     Draw.Rect(PositionX, y, ListWidth + 64, EntryHeight, ColorUI);
 
                 Vector2 pos = new Vector2(PositionX, y);
+                Vector2 back = pos;
                 if (isOn)
                 {
                     CollabLobbyUIUtils.Gui_Arrow.Draw(pos, Vector2.Zero, Color.Orange, IconHeight / CollabLobbyUIUtils.Gui_Arrow.Height);
@@ -214,12 +215,42 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 }
                 pos.Y += EntryHeight / 2;
                 ActiveFont.Draw(p.CleanName, pos, Vector2.UnitY/2f, Vector2.One * .3f, i == EntrySelected ? Color.Gold : isOn ? Color.Lerp(Color.Orange, Color.White, .5f) : Color.White);
+
+
+                back.X += ListWidth;
+                if( p.hearted)
+                {
+                    p.heart_texture.Draw(back, Vector2.UnitX, Color.White, IconHeight / p.heart_texture.Height);
+                }
+                back.X -= IconHeight / p.heart_texture.Height * p.heart_texture.Width;
+
+                CollabLobbyUIUtils.Gui_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height);
+                back.X += IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2;
+                ActiveFont.Draw(p.strawberry_collected, back, Vector2.UnitX/2f, Vector2.One * .25f, Color.White);
+                back.X -= IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2*3;
+
+                if(p.silvered)
+                {
+                    CollabLobbyUIUtils.Gui_silver_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height);
+                }
+                else if(p.goldened)
+                {
+                    CollabLobbyUIUtils.Gui_golden_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_golden_strawberry.Height);
+                }
+                //Can the sizes of goldenberry and silverberry be different?
+                back.X -= IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height * CollabLobbyUIUtils.Gui_silver_strawberry.Width;
+
+                if(p.speeded>0)
+                {
+                    CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Height);
+                }
+                
                 y += EntryHeight;
             }
 
             if (endAt > startAt && Module.Trackers.Count > endAt)
             {
-                ActiveFont.Draw($"+{Module.Trackers.Count - endAt}", new Vector2(PositionX + ListWidth + 32, y - EntryHeight/2), new Vector2(1f, 0.5f), Vector2.One * .3f,Color.Orange);
+                ActiveFont.Draw($"+{Module.Trackers.Count - endAt}", new Vector2(PositionX + ListWidth + 64, y - EntryHeight/2), new Vector2(1f, 0.5f), Vector2.One * .3f,Color.Orange);
             }
 
             ButtonBinding vbT = Settings.ButtonNavToggleItem;

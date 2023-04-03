@@ -1,10 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Celeste.Mod.CollabUtils2;
+using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Celeste.Mod.CollabLobbyUI.Entities
 {
@@ -12,22 +11,85 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
     {
         public readonly Entity Target = null;
         public readonly string Map;
-        public readonly AreaData Area;
+        public readonly AreaData AreaData;
         public readonly string CleanName;
         public readonly string IconName;
         public readonly MTexture Icon;
 
+        public readonly AreaStats areaStats;
+        public readonly bool hearted = false;
+        public readonly MTexture heart_texture;
+        public readonly string strawberry_collected;
+
+        //public readonly string strawberry_all;
+        public readonly bool silvered = false;
+
+        public readonly bool goldened = false;
+        public readonly int speeded = 0;
+
         private Player player;
+        public struct SpeedBerryInfo
+        {
+            public EntityID ID;
+            public int Gold;
+            public int Silver;
+            public int Bronze;
+        }
+        private static int getRankColor(CollabMapDataProcessor.SpeedBerryInfo speedBerryInfo, long pb)
+        {
+            float pbSeconds = (float)TimeSpan.FromTicks(pb).TotalSeconds;
+            if (pbSeconds < speedBerryInfo.Gold)
+            {
+                return 3;
+            }
+            else if (pbSeconds < speedBerryInfo.Silver)
+            {
+                return 2;
+            }
+            return 1;
+        }
 
         public NavPointer(Entity target = null, string map = "")
         {
             AddTag(TagsExt.SubHUD);
             Target = target;
             Map = map;
-            Area = AreaDataExt.Get(map);
-            CleanName = Area?.Name?.DialogCleanOrNull()?? Map;
-            IconName = Area?.Icon;
+            AreaData = AreaDataExt.Get(map);
+            CleanName = AreaData?.Name?.DialogCleanOrNull() ?? Map;
+            IconName = AreaData?.Icon;
             Icon = !string.IsNullOrWhiteSpace(IconName) && GFX.Gui.Has(IconName) ? GFX.Gui[IconName] : null;
+
+            //MapDataFixup context;
+            //context.Get<CollabMapDataProcessor>();
+            areaStats = SaveData.Instance.Areas_Safe.Find(stat => stat.ID_Safe == AreaData.ID);
+            if (AreaData.Mode[0].TotalStrawberries > 0 || areaStats.Modes[0].TotalStrawberries > 0)
+            {
+                strawberry_collected = areaStats.TotalStrawberries.ToString() + '/' + AreaData.Mode[0].TotalStrawberries.ToString();
+            }
+            else
+            {
+                strawberry_collected = "0";
+            }
+            string heart_texture_string = MTN.Journal.Has("CollabUtils2Hearts/" + AreaData.GetLevelSet()) ? "CollabUtils2Hearts/" + AreaData.GetLevelSet() : "heartgem0";
+            heart_texture = MTN.Journal[heart_texture_string];//GFX.Gui[heart_texture_string];
+            hearted = areaStats.Modes[0].HeartGem;
+            if (areaStats.Modes[0].Strawberries.Any(berry => AreaData.Mode[0].MapData.Goldenberries.Any(golden => golden.ID == berry.ID && golden.Level.Name == berry.Level)))
+            {
+                goldened = true;
+            }
+            var copy_to_debug = CollabModule.Instance.SaveData.SpeedBerryPBs;
+            if ((CollabMapDataProcessor.SilverBerries?.TryGetValue(AreaData.GetLevelSet(), out Dictionary<string, EntityID> levelSetBerries) ?? false)
+                && (levelSetBerries?.TryGetValue(AreaData.GetSID(), out EntityID berryID) ?? false)
+                && areaStats.Modes[0].Strawberries.Contains(berryID))
+            {
+                silvered = true;
+                goldened = false;
+            }
+            if ((CollabMapDataProcessor.SpeedBerries?.TryGetValue(areaStats.GetSID(), out CollabMapDataProcessor.SpeedBerryInfo speedBerryInfo) ?? false)
+                && copy_to_debug.TryGetValue(areaStats.GetSID(), out long speedBerryPB))
+            {
+                speeded = getRankColor(speedBerryInfo, speedBerryPB);
+            }
         }
 
         public override void Render()
@@ -40,7 +102,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             base.Render();
             bool visible = drawArrowOrCross(Target, level, out Vector2 tPos, out float angle);
 
-            Vector2 justify = Vector2.UnitY/2;
+            Vector2 justify = Vector2.UnitY / 2;
             if (visible)
                 justify.X = 0.5f;
             else if (tPos.X > Engine.ViewWidth / 2)
