@@ -93,25 +93,39 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             Module.Trackers.Sort(comparers[_useComparer]);
         }
 
-        private async void NavDownEntrySelected()
+        private Mutex _NavEntrySelectedMutex = new();
+        private void NavDownEntrySelected()
         {
-            int time = 500;
-            while (Settings.ButtonNavDown.Check)
+            EntrySelected++;
+            if(!_NavEntrySelectedMutex.WaitOne(1))
             {
-                EntrySelected++;
-                await Task.Run(() => Thread.Sleep(time));
-                time = 50;
+                return;
             }
+            Thread.Sleep(500);
+            do
+            {
+                Thread.Sleep(50);
+                EntrySelected++;
+            }
+            while (Settings.ButtonNavDown.Check);
+            _NavEntrySelectedMutex.ReleaseMutex();
         }
-        private async void NavUpEntrySelected()
+        //private Mutex _NavUpEntrySelectedMutex = new();
+        private void NavUpEntrySelected()
         {
-            int time = 500;
-            while (Settings.ButtonNavUp.Check)
+            EntrySelected--;
+            if(!_NavEntrySelectedMutex.WaitOne(1))
+            {
+                return;
+            }
+            Thread.Sleep(500);
+            do
             {
                 EntrySelected--;
-                await Task.Run(() => Thread.Sleep(time));
-                time = 50;
+                Thread.Sleep(50);
             }
+            while (Settings.ButtonNavUp.Check);
+            _NavEntrySelectedMutex.ReleaseMutex();
         }
         public override void Update()
         {
@@ -133,11 +147,11 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             {
                 if (Settings.ButtonNavDown.Pressed)
                 {
-                    NavDownEntrySelected();
+                    Task.Run(NavDownEntrySelected);
                 }
                 else if (Settings.ButtonNavUp.Pressed)
                 {
-                    NavUpEntrySelected();
+                    Task.Run(NavUpEntrySelected);
                 }
 
                 if (Settings.ButtonNavToggleSort.Pressed)
@@ -238,33 +252,35 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 pos.Y += EntryHeight / 2;
                 ActiveFont.Draw(p.CleanName, pos, Vector2.UnitY/2f, Vector2.One * .3f, i == EntrySelected ? Color.Gold : isOn ? Color.Lerp(Color.Orange, Color.White, .5f) : Color.White);
 
-
-                back.X += ListWidth;
-                if( p.hearted)
+                if(Settings.ShowProgressInNavMenu)
                 {
-                    p.heart_texture.Draw(back, Vector2.UnitX, Color.White, IconHeight / p.heart_texture.Height);
-                }
-                back.X -= IconHeight / p.heart_texture.Height * p.heart_texture.Width;
+                    back.X += ListWidth;
+                    if( p.hearted)
+                    {
+                        p.heart_texture.Draw(back, Vector2.UnitX, Color.White, IconHeight / p.heart_texture.Height);
+                    }
+                    back.X -= IconHeight / p.heart_texture.Height * p.heart_texture.Width;
 
-                CollabLobbyUIUtils.Gui_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height);
-                back.X += IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2;
-                ActiveFont.Draw(p.strawberry_collected, back, Vector2.UnitX/2f, Vector2.One * .25f, Color.White);
-                back.X -= IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2*3;
+                    CollabLobbyUIUtils.Gui_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height);
+                    back.X += IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2;
+                    ActiveFont.Draw(p.strawberry_collected, back, Vector2.UnitX/2f, Vector2.One * .25f, Color.White);
+                    back.X -= IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2*3;
 
-                if(p.silvered)
-                {
-                    CollabLobbyUIUtils.Gui_silver_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height);
-                }
-                else if(p.goldened)
-                {
-                    CollabLobbyUIUtils.Gui_golden_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_golden_strawberry.Height);
-                }
-                //Can the sizes of goldenberry and silverberry be different?
-                back.X -= IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height * CollabLobbyUIUtils.Gui_silver_strawberry.Width;
+                    if(p.silvered)
+                    {
+                        CollabLobbyUIUtils.Gui_silver_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height);
+                    }
+                    else if(p.goldened)
+                    {
+                        CollabLobbyUIUtils.Gui_golden_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_golden_strawberry.Height);
+                    }
+                    //Can the sizes of goldenberry and silverberry be different?
+                    back.X -= IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height * CollabLobbyUIUtils.Gui_silver_strawberry.Width;
 
-                if(p.speeded>0)
-                {
-                    CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Height);
+                    if(p.speeded>0)
+                    {
+                        CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Height);
+                    }
                 }
                 
                 y += EntryHeight;

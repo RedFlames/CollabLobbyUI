@@ -20,6 +20,8 @@ namespace Celeste.Mod.CollabLobbyUI {
         public bool EnableOnDebugMap { get; set; } = true;
         public bool AlwaysShowAllOnDebugMap { get; set; } = true;
 
+        public bool ShowProgressInNavMenu { get; set; } = true;
+
         [YamlIgnore, SettingIgnore]
         public TextMenu.OnOff EnabledEntry { get; protected set; }
 
