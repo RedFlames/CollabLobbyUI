@@ -23,6 +23,7 @@
 	MODOPTIONS_COLLABLOBBYUI_ENABLED=			启用
 	MODOPTIONS_COLLABLOBBYUI_ENABLEDHINT=			
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavMenu=			打开导航菜单
+	MODOPTIONS_COLLABLOBBYUI_ButtonNavMenuClose=			关闭导航菜单
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavNext=			选择下一个
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavPrev=			选择上一个
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavToggleItem=			导航菜单: 打开/关闭指示器
@@ -36,3 +37,7 @@
 	COLLABLOBBYUI_Nav_Tips2= : 传送。  
 	COLLABLOBBYUI_Nav_Tips3= : 改变排序方法。 
 	COLLABLOBBYUI_Nav_Tips4= : 全选/全不选。 
+
+	MODOPTIONS_COLLABLOBBYUI_EnableOnDebugMap=			在Debug界面启用
+	MODOPTIONS_COLLABLOBBYUI_AlwaysShowAllOnDebugMap=			总是在Debug界面显示所有地图
+
