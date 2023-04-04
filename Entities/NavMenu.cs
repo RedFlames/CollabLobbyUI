@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Schema;
 
@@ -92,6 +93,26 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             Module.Trackers.Sort(comparers[_useComparer]);
         }
 
+        private async void NavDownEntrySelected()
+        {
+            int time = 500;
+            while (Settings.ButtonNavDown.Check)
+            {
+                EntrySelected++;
+                await Task.Run(() => Thread.Sleep(time));
+                time = 50;
+            }
+        }
+        private async void NavUpEntrySelected()
+        {
+            int time = 500;
+            while (Settings.ButtonNavUp.Check)
+            {
+                EntrySelected--;
+                await Task.Run(() => Thread.Sleep(time));
+                time = 50;
+            }
+        }
         public override void Update()
         {
             base.Update();
@@ -112,10 +133,11 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             {
                 if (Settings.ButtonNavDown.Pressed)
                 {
-                    EntrySelected++;
-                } else if (Settings.ButtonNavUp.Pressed)
+                    NavDownEntrySelected();
+                }
+                else if (Settings.ButtonNavUp.Pressed)
                 {
-                    EntrySelected--;
+                    NavUpEntrySelected();
                 }
 
                 if (Settings.ButtonNavToggleSort.Pressed)
@@ -162,8 +184,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (IsActive && Settings.ButtonNavMenuClose.Released))
             {
                 IsActive = !IsActive;
-                Settings.ButtonNavDown.SetRepeat(.25f);
-                Settings.ButtonNavUp.SetRepeat(.25f);
+                //Settings.ButtonNavDown.SetRepeat(.15f);
+                //Settings.ButtonNavUp.SetRepeat(.15f);
             }
 
 

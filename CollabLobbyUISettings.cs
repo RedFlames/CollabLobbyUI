@@ -30,7 +30,8 @@ namespace Celeste.Mod.CollabLobbyUI {
                 .Change(v => UserEnabled = v)
             );
             EnabledEntry.Disabled = CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true;
-            EnabledEntry.AddDescription(menu, "MODOPTIONS_COLLABLOBBYUI_ENABLEDHINT".DialogClean());
+            //EnabledEntry.AddDescription(menu, "MODOPTIONS_COLLABLOBBYUI_ENABLEDHINT".DialogClean());
+            
         }
 
         #region Key Bindings
