@@ -93,39 +93,26 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             Module.Trackers.Sort(comparers[_useComparer]);
         }
 
-        private Mutex _NavEntrySelectedMutex = new();
-        private void NavDownEntrySelected()
+        public volatile int _NavEntrySelectedMutex = 0;
+        private void NavDownEntrySelected(int copy)
         {
             EntrySelected++;
-            if(!_NavEntrySelectedMutex.WaitOne(1))
-            {
-                return;
-            }
             Thread.Sleep(500);
-            do
+            while (copy==_NavEntrySelectedMutex)
             {
                 Thread.Sleep(50);
                 EntrySelected++;
             }
-            while (Settings.ButtonNavDown.Check);
-            _NavEntrySelectedMutex.ReleaseMutex();
         }
-        //private Mutex _NavUpEntrySelectedMutex = new();
-        private void NavUpEntrySelected()
+        private void NavUpEntrySelected(int copy)
         {
             EntrySelected--;
-            if(!_NavEntrySelectedMutex.WaitOne(1))
-            {
-                return;
-            }
             Thread.Sleep(500);
-            do
+            while (copy==_NavEntrySelectedMutex)
             {
                 EntrySelected--;
                 Thread.Sleep(50);
             }
-            while (Settings.ButtonNavUp.Check);
-            _NavEntrySelectedMutex.ReleaseMutex();
         }
         public override void Update()
         {
@@ -147,11 +134,21 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             {
                 if (Settings.ButtonNavDown.Pressed)
                 {
-                    Task.Run(NavDownEntrySelected);
+                    _NavEntrySelectedMutex++;
+                    Task.Run(()=>NavDownEntrySelected(_NavEntrySelectedMutex));
                 }
                 else if (Settings.ButtonNavUp.Pressed)
                 {
-                    Task.Run(NavUpEntrySelected);
+                    _NavEntrySelectedMutex++;
+                    Task.Run(()=>NavUpEntrySelected(_NavEntrySelectedMutex));
+                }
+                if (Settings.ButtonNavDown.Released)
+                {
+                    _NavEntrySelectedMutex++;
+                }
+                else if (Settings.ButtonNavUp.Released)
+                {
+                    _NavEntrySelectedMutex++;
                 }
 
                 if (Settings.ButtonNavToggleSort.Pressed)
