@@ -1,15 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Monocle;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Schema;
+using Monocle;
 
 namespace Celeste.Mod.CollabLobbyUI.Entities
 {
@@ -56,7 +51,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         {
             new NavComparerIcons(),
             new NavComparerNames(),
-            new NavComparerSIDs()
+            new NavComparerSIDs(),
+            new NavComparerProgress()
         };
 
         private int _useComparer = 0;
@@ -153,7 +149,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
 
                 if (Settings.ButtonNavToggleSort.Pressed)
                 {
-                    _useComparer = (_useComparer + 1) % comparers.Length;
+                    _useComparer = (_useComparer + 1) % (comparers.Length - (Settings.ShowProgressInNavMenu ? 1 : 0));
                     Module.Trackers.Sort(comparers[_useComparer]);
                     EntrySelected = 0;
                 }

@@ -20,6 +20,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         public readonly bool hearted = false;
         public readonly MTexture heart_texture;
         public readonly string strawberry_collected;
+        public readonly int strawberry_notcollected;
 
         //public readonly string strawberry_all;
         public readonly bool silvered = false;
@@ -65,6 +66,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             if (AreaData.Mode[0].TotalStrawberries > 0 || areaStats.Modes[0].TotalStrawberries > 0)
             {
                 strawberry_collected = areaStats.TotalStrawberries.ToString() + '/' + AreaData.Mode[0].TotalStrawberries.ToString();
+                strawberry_notcollected = AreaData.Mode[0].TotalStrawberries - areaStats.TotalStrawberries;
             }
             else
             {
@@ -156,6 +158,14 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         public int Compare(NavPointer a, NavPointer b)
         {
             return string.Compare(a.Map, b.Map);
+        }
+    }
+    public class NavComparerProgress : IComparer<NavPointer>
+    {
+        public int Compare(NavPointer a, NavPointer b)
+        {
+            return (b.hearted, a.strawberry_notcollected, b.silvered || b.goldened, b.speeded, a.IconName, a.CleanName, a.Map)
+        .CompareTo((a.hearted, b.strawberry_notcollected, a.silvered || a.goldened, a.speeded, b.IconName, b.CleanName, b.Map));
         }
     }
 
