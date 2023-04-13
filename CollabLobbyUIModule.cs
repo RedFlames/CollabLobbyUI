@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Celeste.Mod.CollabLobbyUI.Entities;
+using Celeste.Mod.CollabUtils2.Triggers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
@@ -22,21 +23,8 @@ namespace Celeste.Mod.CollabLobbyUI {
             set => Settings.Enabled = value;
         }
 
-        private Player player;
-
-
-
-        private const string cu2_modName = "CollabUtils2";
-        private const string cu2_ChapterPanelTrigger_name = "Celeste.Mod.CollabUtils2.Triggers.ChapterPanelTrigger";
-        private const string cu2_ChapterPanelTrigger_entity = "CollabUtils2/ChapterPanelTrigger";
-
-
-        private Assembly cu2_Asm;
-        private Type cu2_ChapterPanelTrigger_type;
-
         private readonly Dictionary<Trigger, string> triggers = new();
         public int TriggerCount => triggers?.Count ?? 0;
-        private Trigger NavigateTowardsMap;
 
         public readonly List<NavPointer> Trackers = new();
         private readonly HashSet<string> activeTrackers = new();
@@ -47,37 +35,11 @@ namespace Celeste.Mod.CollabLobbyUI {
 
         public DebugComponent DebugMap;
 
-        public bool CollabUtils2_Not_Found { get; private set; } = true;
-
         public CollabLobbyUIModule() {
             Instance = this;
         }
 
-        private void Bail_Loading(string msg = "")
-        {
-            if(!string.IsNullOrEmpty(msg))
-                Logger.Log(LogLevel.Warn, "CollabLobbyUI", msg);
-            CollabUtils2_Not_Found = true;
-        }
-
         public override void Load() {
-            EverestModule collabUtils2 = Everest.Modules.FirstOrDefault(module => module.Metadata?.Name == cu2_modName);
-            if (collabUtils2 == null || (cu2_Asm = collabUtils2?.GetType().Assembly) == null)
-            {
-                Bail_Loading("{cu2_modName} Module not found.");
-                return;
-            }
-            cu2_ChapterPanelTrigger_type = cu2_Asm.GetType(cu2_ChapterPanelTrigger_name);
-
-            if (cu2_ChapterPanelTrigger_type == null)
-            {
-                Bail_Loading($"Could not find {cu2_ChapterPanelTrigger_name} despite finding {cu2_modName}");
-                return;
-            } else
-            {
-                Logger.Log(LogLevel.Info, "CollabLobbyUI", $"Found {cu2_ChapterPanelTrigger_name} as {cu2_ChapterPanelTrigger_type.FullName}");
-            }
-            CollabUtils2_Not_Found = false;
 
             //Everest.Events.Level.OnLoadEntity += Level_OnLoadEntity;
             Everest.Events.Level.OnEnter += Level_OnEnter;
@@ -94,7 +56,7 @@ namespace Celeste.Mod.CollabLobbyUI {
         {
             orig(self, data, offset);
 
-            if (self.GetType() == cu2_ChapterPanelTrigger_type)
+            if (self is ChapterPanelTrigger)
             {
                 triggers[self] = data.Attr("map");
             }
@@ -112,14 +74,6 @@ namespace Celeste.Mod.CollabLobbyUI {
                         l.Remove(t);
                 }
                 Trackers.Clear();
-                return false;
-            }
-
-            if (cu2_ChapterPanelTrigger_type == null)
-            {
-                Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"{cu2_ChapterPanelTrigger_name} Type object is null, disabling myself.");
-                Enabled = false;
-                CollabUtils2_Not_Found = true;
                 return false;
             }
 
@@ -154,8 +108,6 @@ namespace Celeste.Mod.CollabLobbyUI {
                 TryRemoveMenu(level);
                 return;
             }
-
-            player = level.Tracker.GetEntity<Player>();
 
             if (Trackers.Count == 0)
             {

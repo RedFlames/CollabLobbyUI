@@ -19,8 +19,6 @@ namespace Celeste.Mod.CollabLobbyUI
                 return;
             }
 
-            Engine.Commands.Log($"CollabLobbyUIModule.Instance.CollabUtils2_Not_Found = {CollabLobbyUIModule.Instance.CollabUtils2_Not_Found}");
-
             Engine.Commands.Log($"CollabLobbyUIModule.Instance.TriggerCount = {CollabLobbyUIModule.Instance.TriggerCount}");
 
             if (CollabLobbyUIModule.Instance.Trackers == null)

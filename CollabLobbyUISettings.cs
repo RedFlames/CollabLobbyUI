@@ -11,29 +11,12 @@ using YamlDotNet.Serialization;
 namespace Celeste.Mod.CollabLobbyUI {
     public class CollabLobbyUISettings : EverestModuleSettings
     {
-        [SettingIgnore]
-        public bool UserEnabled { get; set; } = true;
-
-        [YamlIgnore]
-        public bool Enabled { get => UserEnabled && !(CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true); set => UserEnabled = value; }
+        public bool Enabled { get; set; } = true;
 
         public bool EnableOnDebugMap { get; set; } = true;
         public bool AlwaysShowAllOnDebugMap { get; set; } = true;
 
         public bool ShowProgressInNavMenu { get; set; } = true;
-
-        [YamlIgnore, SettingIgnore]
-        public TextMenu.OnOff EnabledEntry { get; protected set; }
-
-        public void CreateEnabledEntry(TextMenu menu, bool inGame)
-        {
-            menu.Add(
-                (EnabledEntry = new TextMenu.OnOff("MODOPTIONS_COLLABLOBBYUI_ENABLED".DialogClean(), Enabled))
-                .Change(v => UserEnabled = v)
-            );
-            EnabledEntry.Disabled = CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true;
-            
-        }
 
         #region Key Bindings
 
