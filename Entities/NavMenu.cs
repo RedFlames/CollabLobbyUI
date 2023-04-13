@@ -93,33 +93,16 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             GFX.Gui["CollabUtils2/speedberry_gold"],
         };
 
+        protected InputRepeatDelay UpDownRepeatDelay;
+
         public NavMenu(int selected = 0) {
             AddTag(Tags.HUD);
             EntrySelected = selected;
             Module.Trackers.Sort(comparers[_useComparer]);
+            UpDownRepeatDelay = new(Settings.ButtonNavUp, Settings.ButtonNavDown);
         }
 
-        public volatile int _NavEntrySelectedMutex = 0;
-        private void NavDownEntrySelected(int copy)
-        {
-            EntrySelected++;
-            Thread.Sleep(500);
-            while (copy==_NavEntrySelectedMutex)
-            {
-                Thread.Sleep(50);
-                EntrySelected++;
-            }
-        }
-        private void NavUpEntrySelected(int copy)
-        {
-            EntrySelected--;
-            Thread.Sleep(500);
-            while (copy==_NavEntrySelectedMutex)
-            {
-                EntrySelected--;
-                Thread.Sleep(50);
-            }
-        }
+
         public override void Update()
         {
             base.Update();
@@ -136,25 +119,19 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 return;
             }
 
+            UpDownRepeatDelay.Update(Engine.RawDeltaTime);
+
             if (IsActive)
             {
-                if (Settings.ButtonNavDown.Pressed)
+                if (UpDownRepeatDelay.Check(Settings.ButtonNavDown))
                 {
-                    _NavEntrySelectedMutex++;
-                    Task.Run(()=>NavDownEntrySelected(_NavEntrySelectedMutex));
+                    EntrySelected++;
+                    UpDownRepeatDelay.Triggered();
                 }
-                else if (Settings.ButtonNavUp.Pressed)
+                else if (UpDownRepeatDelay.Check(Settings.ButtonNavUp))
                 {
-                    _NavEntrySelectedMutex++;
-                    Task.Run(()=>NavUpEntrySelected(_NavEntrySelectedMutex));
-                }
-                if (Settings.ButtonNavDown.Released)
-                {
-                    _NavEntrySelectedMutex++;
-                }
-                else if (Settings.ButtonNavUp.Released)
-                {
-                    _NavEntrySelectedMutex++;
+                    EntrySelected--;
+                    UpDownRepeatDelay.Triggered();
                 }
 
                 if (Settings.ButtonNavToggleSort.Pressed)
@@ -201,8 +178,6 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (IsActive && Settings.ButtonNavMenuClose.Released))
             {
                 IsActive = !IsActive;
-                //Settings.ButtonNavDown.SetRepeat(.15f);
-                //Settings.ButtonNavUp.SetRepeat(.15f);
             }
 
 
