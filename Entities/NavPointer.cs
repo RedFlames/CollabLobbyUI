@@ -147,9 +147,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
     {
         public int Compare(NavPointer a, NavPointer b)
         {
-            int compI = string.Compare(a.IconName, b.IconName);
-            int compN = string.Compare(a.CleanName, b.CleanName);
-            return compI == 0 ? (compN == 0 ? string.Compare(a.Map, b.Map) : compN) : compI;
+            return a.IconName.NullableCompareTo(b.IconName) ?? a.CleanName.NullableCompareTo(b.CleanName) ?? a.Map.CompareTo(b.Map);
         }
     }
 
@@ -164,8 +162,13 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
     {
         public int Compare(NavPointer a, NavPointer b)
         {
-            return (b.hearted, a.strawberry_notcollected, b.silvered || b.goldened, b.speeded, a.IconName, a.CleanName, a.Map)
-        .CompareTo((a.hearted, b.strawberry_notcollected, a.silvered || a.goldened, a.speeded, b.IconName, b.CleanName, b.Map));
+            return b.hearted.NullableCompareTo(a.hearted) 
+                ?? a.strawberry_notcollected.NullableCompareTo(b.strawberry_notcollected) 
+                ?? (b.silvered || b.goldened).NullableCompareTo(a.silvered || a.goldened)
+                ?? b.speeded.NullableCompareTo(a.speeded)
+                ?? a.IconName.NullableCompareTo(b.IconName)
+                ?? a.CleanName.NullableCompareTo(b.CleanName)
+                ?? a.Map.CompareTo(b.Map);
         }
     }
 
@@ -173,8 +176,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
     {
         public int Compare(NavPointer a, NavPointer b)
         {
-            int compN = string.Compare(a.CleanName, b.CleanName);
-            return compN == 0 ? string.Compare(a.Map, b.Map) : compN;
+            return a.CleanName.NullableCompareTo(b.CleanName) ?? a.Map.CompareTo(b.Map);
         }
     }
 }

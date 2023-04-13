@@ -18,10 +18,10 @@
 # {trigger x} this triggers an in-game event
 # {anchor} controls the visual position of the textbox in-game
 
-# GhostNet Module Options
+# CollabLobbyUI Module Options
 	MODOPTIONS_COLLABLOBBYUI_TITLE= 			Collab Lobby UI (Nav Menu)
 	MODOPTIONS_COLLABLOBBYUI_ENABLED=			启用
-	MODOPTIONS_COLLABLOBBYUI_ENABLEDHINT=			
+
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavMenu=			打开导航菜单
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavMenuClose=			关闭导航菜单
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavNext=			选择下一个
@@ -32,13 +32,9 @@
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavUp=				导航菜单: 上
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavDown=				导航菜单: 下
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavTeleport=				导航菜单: 传送
-	COLLABLOBBYUI_Nav_Tips0= 
-	COLLABLOBBYUI_Nav_Tips1= : 打开/关闭指示器。  
-	COLLABLOBBYUI_Nav_Tips2= : 传送。  
-	COLLABLOBBYUI_Nav_Tips3= : 改变排序方法。 
-	COLLABLOBBYUI_Nav_Tips4= : 全选/全不选。 
 
 	MODOPTIONS_COLLABLOBBYUI_EnableOnDebugMap=			在Debug界面启用
 	MODOPTIONS_COLLABLOBBYUI_AlwaysShowAllOnDebugMap=			总是在Debug界面显示所有地图
 	MODOPTIONS_COLLABLOBBYUI_ShowProgressInNavMenu=			在导航菜单中显示进度
 
+	COLLABLOBBYUI_Nav_ButtonPrompt= ((toggle_item)): 打开/关闭指示器。  ((teleport)): 传送。  ((toggle_sort)): 改变排序方法。 ((clear_all)): 全选/全不选。 

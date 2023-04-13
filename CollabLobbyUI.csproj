@@ -22,6 +22,9 @@
 
   <ItemGroup>
     <Reference Include="Celeste" HintPath="$(CELESTEGAMEPATH)\Celeste.exe" />
+    <Reference Include="CollabUtils2">
+      <HintPath>..\CelesteCollabUtils2\bin\Debug\net452\CollabUtils2.dll</HintPath>
+    </Reference>
     <Reference Include="MMHOOK_Celeste" HintPath="$(CELESTEGAMEPATH)\MMHOOK_Celeste.dll" />
     <Reference Include="YamlDotNet" HintPath="$(CELESTEGAMEPATH)\YamlDotNet.dll" />
   </ItemGroup>
