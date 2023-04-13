@@ -290,7 +290,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             string toggleSort = MInput.ControllerHasFocus ? $"({vbS.Buttons.FirstOrDefault()})" : $"[{vbS.Keys.FirstOrDefault()}]";
             ButtonBinding vbC = Settings.ButtonNavClearAll;
             string toggleClear = MInput.ControllerHasFocus ? $"({vbC.Buttons.FirstOrDefault()})" : $"[{vbC.Keys.FirstOrDefault()}]";
-            ButtonBinding vbTp = Settings.ButtonNavClearAll;
+            ButtonBinding vbTp = Settings.ButtonNavTeleport;
             string teleportBind = MInput.ControllerHasFocus ? $"({vbTp.Buttons.FirstOrDefault()})" : $"[{vbTp.Keys.FirstOrDefault()}]";
 
             string tips0 = Dialog.Get("COLLABLOBBYUI_Nav_Tips0");
