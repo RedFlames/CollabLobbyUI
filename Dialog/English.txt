@@ -21,7 +21,7 @@
 # GhostNet Module Options
 	MODOPTIONS_COLLABLOBBYUI_TITLE= 			Collab Lobby UI (Nav Menu)
 	MODOPTIONS_COLLABLOBBYUI_ENABLED=			Enabled
-	MODOPTIONS_COLLABLOBBYUI_ENABLEDHINT=			If you can't enable this, you probably don't have CollabUtils2 installed/loaded.
+	MODOPTIONS_COLLABLOBBYUI_ENABLEDHINT=			
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavMenu=			Open Nav Menu
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavNext=			Select Next Waypoint
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavPrev=			Select Previous Waypoint
@@ -31,3 +31,8 @@
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavUp=				Nav Menu: Up
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavDown=				Nav Menu: Down
 	MODOPTIONS_COLLABLOBBYUI_ButtonNavTeleport=				Nav Menu: Teleport
+	COLLABLOBBYUI_Nav_Tips0= 
+	COLLABLOBBYUI_Nav_Tips1= : Entry On/Off. 
+	COLLABLOBBYUI_Nav_Tips2= : Teleport. 
+	COLLABLOBBYUI_Nav_Tips3= : Sort modes. 
+	COLLABLOBBYUI_Nav_Tips4= : Clear/Select ALL.

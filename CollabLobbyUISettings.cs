@@ -20,6 +20,8 @@ namespace Celeste.Mod.CollabLobbyUI {
         public bool EnableOnDebugMap { get; set; } = true;
         public bool AlwaysShowAllOnDebugMap { get; set; } = true;
 
+        public bool ShowProgressInNavMenu { get; set; } = true;
+
         [YamlIgnore, SettingIgnore]
         public TextMenu.OnOff EnabledEntry { get; protected set; }
 
@@ -30,7 +32,8 @@ namespace Celeste.Mod.CollabLobbyUI {
                 .Change(v => UserEnabled = v)
             );
             EnabledEntry.Disabled = CollabLobbyUIModule.Instance?.CollabUtils2_Not_Found ?? true;
-            EnabledEntry.AddDescription(menu, "MODOPTIONS_COLLABLOBBYUI_ENABLEDHINT".DialogClean());
+            //EnabledEntry.AddDescription(menu, "MODOPTIONS_COLLABLOBBYUI_ENABLEDHINT".DialogClean());
+            
         }
 
         #region Key Bindings

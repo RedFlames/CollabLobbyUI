@@ -1,14 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Monocle;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Schema;
+using Monocle;
 
 namespace Celeste.Mod.CollabLobbyUI.Entities
 {
@@ -55,7 +51,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         {
             new NavComparerIcons(),
             new NavComparerNames(),
-            new NavComparerSIDs()
+            new NavComparerSIDs(),
+            new NavComparerProgress()
         };
 
         private int _useComparer = 0;
@@ -92,6 +89,27 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             Module.Trackers.Sort(comparers[_useComparer]);
         }
 
+        public volatile int _NavEntrySelectedMutex = 0;
+        private void NavDownEntrySelected(int copy)
+        {
+            EntrySelected++;
+            Thread.Sleep(500);
+            while (copy==_NavEntrySelectedMutex)
+            {
+                Thread.Sleep(50);
+                EntrySelected++;
+            }
+        }
+        private void NavUpEntrySelected(int copy)
+        {
+            EntrySelected--;
+            Thread.Sleep(500);
+            while (copy==_NavEntrySelectedMutex)
+            {
+                EntrySelected--;
+                Thread.Sleep(50);
+            }
+        }
         public override void Update()
         {
             base.Update();
@@ -112,15 +130,26 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             {
                 if (Settings.ButtonNavDown.Pressed)
                 {
-                    EntrySelected++;
-                } else if (Settings.ButtonNavUp.Pressed)
+                    _NavEntrySelectedMutex++;
+                    Task.Run(()=>NavDownEntrySelected(_NavEntrySelectedMutex));
+                }
+                else if (Settings.ButtonNavUp.Pressed)
                 {
-                    EntrySelected--;
+                    _NavEntrySelectedMutex++;
+                    Task.Run(()=>NavUpEntrySelected(_NavEntrySelectedMutex));
+                }
+                if (Settings.ButtonNavDown.Released)
+                {
+                    _NavEntrySelectedMutex++;
+                }
+                else if (Settings.ButtonNavUp.Released)
+                {
+                    _NavEntrySelectedMutex++;
                 }
 
                 if (Settings.ButtonNavToggleSort.Pressed)
                 {
-                    _useComparer = (_useComparer + 1) % comparers.Length;
+                    _useComparer = (_useComparer + 1) % (comparers.Length - (Settings.ShowProgressInNavMenu ? 1 : 0));
                     Module.Trackers.Sort(comparers[_useComparer]);
                     EntrySelected = 0;
                 }
@@ -162,8 +191,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (IsActive && Settings.ButtonNavMenuClose.Released))
             {
                 IsActive = !IsActive;
-                Settings.ButtonNavDown.SetRepeat(.25f);
-                Settings.ButtonNavUp.SetRepeat(.25f);
+                //Settings.ButtonNavDown.SetRepeat(.15f);
+                //Settings.ButtonNavUp.SetRepeat(.15f);
             }
 
 
@@ -201,6 +230,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                     Draw.Rect(PositionX, y, ListWidth + 64, EntryHeight, ColorUI);
 
                 Vector2 pos = new Vector2(PositionX, y);
+                Vector2 back = pos;
                 if (isOn)
                 {
                     CollabLobbyUIUtils.Gui_Arrow.Draw(pos, Vector2.Zero, Color.Orange, IconHeight / CollabLobbyUIUtils.Gui_Arrow.Height);
@@ -214,12 +244,44 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 }
                 pos.Y += EntryHeight / 2;
                 ActiveFont.Draw(p.CleanName, pos, Vector2.UnitY/2f, Vector2.One * .3f, i == EntrySelected ? Color.Gold : isOn ? Color.Lerp(Color.Orange, Color.White, .5f) : Color.White);
+
+                if(Settings.ShowProgressInNavMenu)
+                {
+                    back.X += ListWidth;
+                    if( p.hearted)
+                    {
+                        p.heart_texture.Draw(back, Vector2.UnitX, Color.White, IconHeight / p.heart_texture.Height);
+                    }
+                    back.X -= IconHeight / p.heart_texture.Height * p.heart_texture.Width;
+
+                    CollabLobbyUIUtils.Gui_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height);
+                    back.X += IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2;
+                    ActiveFont.Draw(p.strawberry_collected, back, Vector2.UnitX/2f, Vector2.One * .25f, Color.White);
+                    back.X -= IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2*3;
+
+                    if(p.silvered)
+                    {
+                        CollabLobbyUIUtils.Gui_silver_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height);
+                    }
+                    else if(p.goldened)
+                    {
+                        CollabLobbyUIUtils.Gui_golden_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_golden_strawberry.Height);
+                    }
+                    //Can the sizes of goldenberry and silverberry be different?
+                    back.X -= IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height * CollabLobbyUIUtils.Gui_silver_strawberry.Width;
+
+                    if(p.speeded>0)
+                    {
+                        CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Height);
+                    }
+                }
+                
                 y += EntryHeight;
             }
 
             if (endAt > startAt && Module.Trackers.Count > endAt)
             {
-                ActiveFont.Draw($"+{Module.Trackers.Count - endAt}", new Vector2(PositionX + ListWidth + 32, y - EntryHeight/2), new Vector2(1f, 0.5f), Vector2.One * .3f,Color.Orange);
+                ActiveFont.Draw($"+{Module.Trackers.Count - endAt}", new Vector2(PositionX + ListWidth + 64, y - EntryHeight/2), new Vector2(1f, 0.5f), Vector2.One * .3f,Color.Orange);
             }
 
             ButtonBinding vbT = Settings.ButtonNavToggleItem;
@@ -230,7 +292,14 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             string toggleClear = MInput.ControllerHasFocus ? $"({vbC.Buttons.FirstOrDefault()})" : $"[{vbC.Keys.FirstOrDefault()}]";
             ButtonBinding vbTp = Settings.ButtonNavClearAll;
             string teleportBind = MInput.ControllerHasFocus ? $"({vbTp.Buttons.FirstOrDefault()})" : $"[{vbTp.Keys.FirstOrDefault()}]";
-            ActiveFont.DrawOutline($"{toggleBind}: Entry On/Off. {teleportBind}: Teleport. {toggleSort}: Sort modes. {toggleClear}: Clear/Select ALL.", new Vector2(PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
+
+            string tips0 = Dialog.Get("COLLABLOBBYUI_Nav_Tips0");
+            string tips1 = Dialog.Get("COLLABLOBBYUI_Nav_Tips1");
+            string tips2 = Dialog.Get("COLLABLOBBYUI_Nav_Tips2");
+            string tips3 = Dialog.Get("COLLABLOBBYUI_Nav_Tips3");
+            string tips4 = Dialog.Get("COLLABLOBBYUI_Nav_Tips4");
+            string allTips = tips0 + toggleBind + tips1 + teleportBind + tips2 + toggleSort + tips3 + toggleClear + tips4;
+            ActiveFont.DrawOutline(allTips, new Vector2(PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
         }
     }
 }

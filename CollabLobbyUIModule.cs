@@ -24,6 +24,8 @@ namespace Celeste.Mod.CollabLobbyUI {
 
         private Player player;
 
+
+
         private const string cu2_modName = "CollabUtils2";
         private const string cu2_ChapterPanelTrigger_name = "Celeste.Mod.CollabUtils2.Triggers.ChapterPanelTrigger";
         private const string cu2_ChapterPanelTrigger_entity = "CollabUtils2/ChapterPanelTrigger";
@@ -218,5 +220,13 @@ namespace Celeste.Mod.CollabLobbyUI {
             On.Celeste.Level.Render -= LevelRender;
         }
 
+
+        //copied
+        public override void PrepareMapDataProcessors(MapDataFixup context)
+        {
+            base.PrepareMapDataProcessors(context);
+
+            context.Add<CollabMapDataProcessor>();
+        }
     }
 }
