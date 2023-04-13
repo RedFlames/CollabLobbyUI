@@ -24,6 +24,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         private static float PositionY = Engine.Height / 2 - ListHeight / 2;
         private const float EntryHeight = 32f;
         private const float IconTargetHeight = 24f;
+        private const float InternalPadding = 8f;
         private const int EntryListLength = 24;
         private int EntryTotal => Module?.Trackers?.Count ?? 0;
         public int EntrySelected
@@ -214,25 +215,25 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 if (i == EntrySelected)
                     Draw.Rect(PositionX, y, ListWidth + 64, EntryHeight, ColorUI);
 
-                Vector2 pos = new Vector2(PositionX, y);
+                Vector2 pos = new (PositionX, y + EntryHeight / 2);
                 Vector2 back = pos;
 
                 float iconScale = IconTargetHeight / CollabLobbyUIUtils.Gui_Arrow.Height;
 
                 if (isOn)
                 {
-                    CollabLobbyUIUtils.Gui_Arrow.Draw(pos, Vector2.Zero, Color.Orange, iconScale);
+                    CollabLobbyUIUtils.Gui_Arrow.DrawOnCenterLine(pos, iconScale, Color.Orange);
                 }
                 pos.X += CollabLobbyUIUtils.Gui_Arrow.Width * iconScale;
 
                 if (p.Icon != null)
                 {
                     iconScale = IconTargetHeight / p.Icon.Height;
-                    p.Icon.Draw(pos, Vector2.Zero, Color.White, iconScale);
-                    pos.X += p.Icon.Width * iconScale;
+                    p.Icon.DrawOnCenterLine(pos, iconScale);
                 }
-                pos.Y += EntryHeight / 2;
-                ActiveFont.Draw(p.CleanName, pos, Vector2.UnitY/2f, Vector2.One * .3f, i == EntrySelected ? Color.Gold : isOn ? Color.Lerp(Color.Orange, Color.White, .5f) : Color.White);
+                pos.X += Module.TrackersMaxIconWidth * iconScale + InternalPadding;
+
+                ActiveFont.Draw(p.CleanName, pos, Vector2.UnitY / 2f, Vector2.One * .3f, i == EntrySelected ? Color.Gold : isOn ? Color.Lerp(Color.Orange, Color.White, .5f) : Color.White);
 
                 if(Settings.ShowProgressInNavMenu)
                 {
@@ -241,29 +242,29 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                     iconScale = IconTargetHeight / p.heart_texture.Height;
                     if (p.hearted)
                     {
-                        p.heart_texture.Draw(back, Vector2.UnitX, Color.White, iconScale);
+                        p.heart_texture.DrawOnCenterLine(back, iconScale);
                     }
-                    back.X -= p.heart_texture.Width * iconScale;
+                    back.X -= p.heart_texture.Width * iconScale - InternalPadding;
 
                     iconScale = IconTargetHeight / Gui_strawberry.Height;
-                    Gui_strawberry.Draw(back, Vector2.UnitX, Color.White, iconScale);
+                    Gui_strawberry.DrawOnCenterLine(back, iconScale);
                     back.X += Gui_strawberry.Width/2 * iconScale;
-                    ActiveFont.Draw(p.strawberry_collected, back, Vector2.UnitX/2f, Vector2.One * .25f, Color.White);
+                    ActiveFont.Draw(p.strawberry_collected, back, new (.5f, .5f), Vector2.One * .25f, Color.White);
                     back.X -= Gui_strawberry.Width/2 * iconScale * 3;
 
                     MTexture drawBerry = p.silvered ? Gui_silver_strawberry : (p.goldened ? Gui_golden_strawberry : null);
                     if (drawBerry != null)
                     {
                         iconScale = IconTargetHeight / drawBerry.Height;
-                        drawBerry.Draw(back, Vector2.UnitX, Color.White, iconScale);
+                        drawBerry.DrawOnCenterLine(back, iconScale);
                     }
-                    back.X -= (drawBerry ?? Gui_silver_strawberry).Width * iconScale;
+                    back.X -= (drawBerry ?? Gui_silver_strawberry).Width * iconScale - InternalPadding;
 
                     if(p.speeded > 0)
                     {
                         MTexture speedBerry = Gui_speed_berry[p.speeded - 1];
                         iconScale = IconTargetHeight / speedBerry.Height;
-                        speedBerry.Draw(back, Vector2.UnitX, Color.White, iconScale);
+                        speedBerry.DrawOnCenterLine(back, iconScale);
                     }
                 }
                 
@@ -272,7 +273,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
 
             if (endAt > startAt && Module.Trackers.Count > endAt)
             {
-                ActiveFont.Draw($"+{Module.Trackers.Count - endAt}", new Vector2(PositionX + ListWidth + 64, y - EntryHeight/2), new Vector2(1f, 0.5f), Vector2.One * .3f,Color.Orange);
+                ActiveFont.Draw($"+{Module.Trackers.Count - endAt}", new (PositionX + ListWidth + 48, y - EntryHeight / 2), new (1f, 0.5f), Vector2.One * .3f,Color.Orange);
             }
 
             ButtonBinding vbT = Settings.ButtonNavToggleItem;
@@ -289,7 +290,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 .Replace("((teleport))", teleportBind)
                 .Replace("((toggle_sort))", toggleSort)
                 .Replace("((clear_all))", toggleClear);
-            ActiveFont.DrawOutline(buttonPrompt, new Vector2(PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
+            ActiveFont.DrawOutline(buttonPrompt, new (PositionX, y + EntryHeight / 2), Vector2.UnitY / 2f, Vector2.One * .3f, Color.LightGray, 0.5f, Color.Black);
         }
     }
 }

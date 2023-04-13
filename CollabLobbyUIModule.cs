@@ -28,6 +28,7 @@ namespace Celeste.Mod.CollabLobbyUI {
 
         public readonly List<NavPointer> Trackers = new();
         private readonly HashSet<string> activeTrackers = new();
+        public int TrackersMaxIconWidth { get; private set; } = 0;
 
         public int entrySelected = 0;
 
@@ -129,6 +130,10 @@ namespace Celeste.Mod.CollabLobbyUI {
                     tracker.Active = activeTrackers.Contains(map);
                     Trackers.Add(tracker);
                     level.Add(tracker);
+
+                    Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Comparing widths... {tracker.Icon} {tracker.Icon?.Width} {TrackersMaxIconWidth}");
+                    if (tracker.Icon != null && tracker.Icon.Width > TrackersMaxIconWidth)
+                        TrackersMaxIconWidth = tracker.Icon.Width;
                 }
             }
 

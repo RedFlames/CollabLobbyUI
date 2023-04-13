@@ -1,10 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Monocle;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using YamlDotNet.Serialization;
+using Color = Microsoft.Xna.Framework.Color;
 
 namespace Celeste.Mod.CollabLobbyUI
 {
@@ -42,6 +40,13 @@ namespace Celeste.Mod.CollabLobbyUI
         public static int? NullableCompareTo<T>(this T obj, T other) where T : IComparable {
             var result = obj.CompareTo(other);
             return result != 0 ? result : null;
+        }
+    }
+
+    public static class MTextureExtensions {
+
+        public static void DrawOnCenterLine( this MTexture tex, Vector2 position, float scale = 1f, Color? color = null, float justifyX = 0f) {
+            tex.Draw(position, new(justifyX * tex.Width, tex.Height / 2f), color ?? Color.White, scale);
         }
     }
 }
