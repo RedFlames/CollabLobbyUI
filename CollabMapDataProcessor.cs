@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Celeste.Mod.CollabLobbyUI
-{
+namespace Celeste.Mod.CollabLobbyUI {
 
+    // This entire class is an exact copy from CollabUtils2 because it currently is not accessible as a public class over there
 
-    
-    public class CollabMapDataProcessor : EverestMapDataProcessor
-    {
+    public class CollabMapDataProcessor : EverestMapDataProcessor {
+
         public struct SpeedBerryInfo
         {
             public EntityID ID;
