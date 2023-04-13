@@ -1,8 +1,8 @@
 ﻿- Name: CollabLobbyUI
-  Version: 1.0.2.3
+  Version: 1.0.3
   DLL: CollabLobbyUI.dll
   Dependencies:
     - Name: Everest
-      Version: 1.3471.0
+      Version: 1.3847.0
     - Name: CollabUtils2
-      Version: 1.8.6
+      Version: 1.8.11
