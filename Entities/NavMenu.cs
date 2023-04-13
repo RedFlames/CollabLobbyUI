@@ -23,7 +23,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         private static float PositionX = Engine.Width / 2 - ListWidth/2;
         private static float PositionY = Engine.Height / 2 - ListHeight / 2;
         private const float EntryHeight = 32f;
-        private const float IconHeight = 24f;
+        private const float IconTargetHeight = 24f;
         private const int EntryListLength = 24;
         private int EntryTotal => Module?.Trackers?.Count ?? 0;
         public int EntrySelected
@@ -82,6 +82,16 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 _IsActive = value;
             }
         }
+
+        public static readonly MTexture Gui_strawberry = GFX.Gui["collectables/strawberry"];
+        public static readonly MTexture Gui_silver_strawberry = GFX.Gui["CollabUtils2/silverberry"];
+        public static readonly MTexture Gui_golden_strawberry = GFX.Gui["collectables/goldberry"];
+        public static readonly MTexture[] Gui_speed_berry = new MTexture[]
+        {
+            GFX.Gui["CollabUtils2/speedberry_bronze"],
+            GFX.Gui["CollabUtils2/speedberry_silver"],
+            GFX.Gui["CollabUtils2/speedberry_gold"],
+        };
 
         public NavMenu(int selected = 0) {
             AddTag(Tags.HUD);
@@ -231,16 +241,20 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
 
                 Vector2 pos = new Vector2(PositionX, y);
                 Vector2 back = pos;
+
+                float iconScale = IconTargetHeight / CollabLobbyUIUtils.Gui_Arrow.Height;
+
                 if (isOn)
                 {
-                    CollabLobbyUIUtils.Gui_Arrow.Draw(pos, Vector2.Zero, Color.Orange, IconHeight / CollabLobbyUIUtils.Gui_Arrow.Height);
+                    CollabLobbyUIUtils.Gui_Arrow.Draw(pos, Vector2.Zero, Color.Orange, iconScale);
                 }
-                pos.X += CollabLobbyUIUtils.Gui_Arrow.Width * IconHeight / CollabLobbyUIUtils.Gui_Arrow.Height;
+                pos.X += CollabLobbyUIUtils.Gui_Arrow.Width * iconScale;
 
                 if (p.Icon != null)
                 {
-                    p.Icon.Draw(pos, Vector2.Zero, Color.White, IconHeight / p.Icon.Height);
-                    pos.X += p.Icon.Width * IconHeight / p.Icon.Height;
+                    iconScale = IconTargetHeight / p.Icon.Height;
+                    p.Icon.Draw(pos, Vector2.Zero, Color.White, iconScale);
+                    pos.X += p.Icon.Width * iconScale;
                 }
                 pos.Y += EntryHeight / 2;
                 ActiveFont.Draw(p.CleanName, pos, Vector2.UnitY/2f, Vector2.One * .3f, i == EntrySelected ? Color.Gold : isOn ? Color.Lerp(Color.Orange, Color.White, .5f) : Color.White);
@@ -248,31 +262,33 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 if(Settings.ShowProgressInNavMenu)
                 {
                     back.X += ListWidth;
-                    if( p.hearted)
-                    {
-                        p.heart_texture.Draw(back, Vector2.UnitX, Color.White, IconHeight / p.heart_texture.Height);
-                    }
-                    back.X -= IconHeight / p.heart_texture.Height * p.heart_texture.Width;
 
-                    CollabLobbyUIUtils.Gui_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height);
-                    back.X += IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2;
+                    iconScale = IconTargetHeight / p.heart_texture.Height;
+                    if (p.hearted)
+                    {
+                        p.heart_texture.Draw(back, Vector2.UnitX, Color.White, iconScale);
+                    }
+                    back.X -= p.heart_texture.Width * iconScale;
+
+                    iconScale = IconTargetHeight / Gui_strawberry.Height;
+                    Gui_strawberry.Draw(back, Vector2.UnitX, Color.White, iconScale);
+                    back.X += Gui_strawberry.Width/2 * iconScale;
                     ActiveFont.Draw(p.strawberry_collected, back, Vector2.UnitX/2f, Vector2.One * .25f, Color.White);
-                    back.X -= IconHeight / CollabLobbyUIUtils.Gui_strawberry.Height * CollabLobbyUIUtils.Gui_strawberry.Width/2*3;
+                    back.X -= Gui_strawberry.Width/2 * iconScale * 3;
 
-                    if(p.silvered)
+                    MTexture drawBerry = p.silvered ? Gui_silver_strawberry : (p.goldened ? Gui_golden_strawberry : null);
+                    if (drawBerry != null)
                     {
-                        CollabLobbyUIUtils.Gui_silver_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height);
+                        iconScale = IconTargetHeight / drawBerry.Height;
+                        drawBerry.Draw(back, Vector2.UnitX, Color.White, iconScale);
                     }
-                    else if(p.goldened)
-                    {
-                        CollabLobbyUIUtils.Gui_golden_strawberry.Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_golden_strawberry.Height);
-                    }
-                    //Can the sizes of goldenberry and silverberry be different?
-                    back.X -= IconHeight / CollabLobbyUIUtils.Gui_silver_strawberry.Height * CollabLobbyUIUtils.Gui_silver_strawberry.Width;
+                    back.X -= (drawBerry ?? Gui_silver_strawberry).Width * iconScale;
 
-                    if(p.speeded>0)
+                    if(p.speeded > 0)
                     {
-                        CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Draw(back, Vector2.UnitX, Color.White, IconHeight / CollabLobbyUIUtils.Gui_speed_berry[p.speeded - 1].Height);
+                        MTexture speedBerry = Gui_speed_berry[p.speeded - 1];
+                        iconScale = IconTargetHeight / speedBerry.Height;
+                        speedBerry.Draw(back, Vector2.UnitX, Color.White, iconScale);
                     }
                 }
                 
