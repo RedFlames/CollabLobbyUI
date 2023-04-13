@@ -48,5 +48,9 @@ namespace Celeste.Mod.CollabLobbyUI
         public static void DrawOnCenterLine( this MTexture tex, Vector2 position, float scale = 1f, Color? color = null, float justifyX = 0f) {
             tex.Draw(position, new(justifyX * tex.Width, tex.Height / 2f), color ?? Color.White, scale);
         }
+
+        public static void DrawOnCenterLineScaled(this MTexture tex, Vector2 position, float targetWidth, Color? color = null, float justifyX = 0f) {
+            tex.Draw(position, new(justifyX * tex.Width, tex.Height / 2f), color ?? Color.White, targetWidth / tex.Width);
+        }
     }
 }

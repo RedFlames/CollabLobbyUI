@@ -19,12 +19,12 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         public readonly AreaStats areaStats;
         public readonly bool hearted = false;
         public readonly MTexture heart_texture;
-        public readonly string strawberry_collected;
-        public readonly int strawberry_notcollected;
+        public readonly int strawberries_collected;
+        public readonly int strawberries_total;
+        public int StrawberriesUncollected => strawberries_total- strawberries_collected;
+        public string StrawberryProgress => getBerryProgressString(strawberries_collected, strawberries_total);
 
-        //public readonly string strawberry_all;
         public readonly bool silvered = false;
-
         public readonly bool goldened = false;
         public readonly int speeded = 0;
 
@@ -50,6 +50,10 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             return 1;
         }
 
+        public static string getBerryProgressString(int collected, int total) {
+            return $"{collected}/{total}";
+        }
+
         public NavPointer(Entity target = null, string map = "")
         {
             AddTag(TagsExt.SubHUD);
@@ -63,15 +67,10 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
             //MapDataFixup context;
             //context.Get<CollabMapDataProcessor>();
             areaStats = SaveData.Instance.Areas_Safe.Find(stat => stat.ID_Safe == AreaData.ID);
-            if (AreaData.Mode[0].TotalStrawberries > 0 || areaStats.Modes[0].TotalStrawberries > 0)
-            {
-                strawberry_collected = areaStats.TotalStrawberries.ToString() + '/' + AreaData.Mode[0].TotalStrawberries.ToString();
-                strawberry_notcollected = AreaData.Mode[0].TotalStrawberries - areaStats.TotalStrawberries;
-            }
-            else
-            {
-                strawberry_collected = "0";
-            }
+
+            strawberries_collected = areaStats.TotalStrawberries;
+            strawberries_total = AreaData.Mode[0].TotalStrawberries;
+
             string heart_texture_string = MTN.Journal.Has("CollabUtils2Hearts/" + AreaData.GetLevelSet()) ? "CollabUtils2Hearts/" + AreaData.GetLevelSet() : "heartgem0";
             heart_texture = MTN.Journal[heart_texture_string];//GFX.Gui[heart_texture_string];
             hearted = areaStats.Modes[0].HeartGem;
@@ -163,7 +162,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
         public int Compare(NavPointer a, NavPointer b)
         {
             return b.hearted.NullableCompareTo(a.hearted) 
-                ?? a.strawberry_notcollected.NullableCompareTo(b.strawberry_notcollected) 
+                ?? a.StrawberriesUncollected.NullableCompareTo(b.StrawberriesUncollected)
                 ?? (b.silvered || b.goldened).NullableCompareTo(a.silvered || a.goldened)
                 ?? b.speeded.NullableCompareTo(a.speeded)
                 ?? a.IconName.NullableCompareTo(b.IconName)
