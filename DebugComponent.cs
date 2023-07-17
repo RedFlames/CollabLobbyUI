@@ -1,20 +1,14 @@
-﻿using Celeste.Editor;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Celeste.Editor;
 using Celeste.Mod.CollabLobbyUI.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using Monocle;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Remoting.Contexts;
-using System.Text;
-using System.Threading.Tasks;
 using MDraw = Monocle.Draw;
 
-namespace Celeste.Mod.CollabLobbyUI
-{
+namespace Celeste.Mod.CollabLobbyUI {
     public class DebugComponent : DrawableGameComponent
     {
 
@@ -78,9 +72,10 @@ namespace Celeste.Mod.CollabLobbyUI
 
                 foreach (NavPointer tracker in Trackers)
                 {
-                    if (tracker.Target?.Position == null)
+                    Vector2? targetPos = tracker.pointToOverride ?? tracker.Target?.Position;
+                    if (targetPos == null)
                         continue;
-                    MDraw.Rect(tracker.Target.Position.X / 8f, tracker.Target.Position.Y / 8f - 1f, 1f, 1f, Color.HotPink);
+                    MDraw.Rect(targetPos.Value.X / 8f, targetPos.Value.Y / 8f - 1f, 1f, 1f, Color.HotPink);
                 }
 
                 MDraw.SpriteBatch.End();
@@ -97,9 +92,10 @@ namespace Celeste.Mod.CollabLobbyUI
 
                 foreach (NavPointer tracker in Trackers)
                 {
-                    if (!(tracker.Active || CollabLobbyUIModule.Settings.AlwaysShowAllOnDebugMap) || tracker.Target?.Position == null)
+                    Vector2? targetPos = tracker.pointToOverride ?? tracker.Target?.Position;
+                    if (!(tracker.Active || CollabLobbyUIModule.Settings.AlwaysShowAllOnDebugMap) || targetPos == null)
                         continue;
-                    Vector2 pos = new(tracker.Target.Position.X / 8f + 0.5f, tracker.Target.Position.Y / 8f - 1.5f);
+                    Vector2 pos = new(targetPos.Value.X / 8f + 0.5f, targetPos.Value.Y / 8f - 1.5f);
                     pos -= camera.Position;
                     pos = new((float)Math.Round(pos.X), (float)Math.Round(pos.Y));
                     pos *= camera.Zoom;

@@ -1,8 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-using Monocle;
+﻿using Monocle;
 
-namespace Celeste.Mod.CollabLobbyUI.Entities
-{
+namespace Celeste.Mod.CollabLobbyUI.Entities {
     public class PauseUpdateOverlay : Overlay
     {
         public override void Update()

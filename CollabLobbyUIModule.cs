@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Celeste.Mod.CollabLobbyUI.Entities;
 using Celeste.Mod.CollabUtils2.Triggers;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Monocle;
-using MonoMod.RuntimeDetour;
 
 namespace Celeste.Mod.CollabLobbyUI {
     public class CollabLobbyUIModule : EverestModule {
@@ -22,6 +19,8 @@ namespace Celeste.Mod.CollabLobbyUI {
             get => Settings.Enabled;
             set => Settings.Enabled = value;
         }
+
+        public HashSet<CollabMapDataProcessor.ChapterPanelTriggerInfo> mapDataTriggers = null;
 
         private readonly Dictionary<Trigger, string> triggers = new();
         public int TriggerCount => triggers?.Count ?? 0;
@@ -47,6 +46,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             Everest.Events.Player.OnSpawn += Player_OnSpawn;
             On.Celeste.Level.Render += LevelRender;
             On.Celeste.Trigger.ctor += Trigger_ctor;
+            Everest.Events.Level.OnLoadLevel += Level_OnLoadLevel;
 
             if (DebugMap == null)
                 Celeste.Instance.Components.Add(DebugMap = new(Celeste.Instance));
@@ -59,6 +59,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             if (self is ChapterPanelTrigger)
             {
                 triggers[self] = data.Attr("map");
+                Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Constructored trigger for {data.Attr("map")}.");
             }
         }
 
@@ -103,7 +104,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             if (Engine.Scene is not Level level)
                 return;
 
-            if (triggers == null || triggers.Count == 0)
+            if (triggers == null || triggers.Count == 0 && mapDataTriggers == null || mapDataTriggers.Count == 0)
             {
                 TryRemoveMenu(level);
                 return;
@@ -111,22 +112,45 @@ namespace Celeste.Mod.CollabLobbyUI {
 
             if (Trackers.Count == 0)
             {
-                foreach (Trigger t in triggers.Keys.Where(k => k.Scene != level).ToArray())
-                {
-                    triggers.Remove(t);
+                if (triggers != null) {
+                    List<Trigger> toBeRemoved = triggers.Keys.Where(k => k.Scene != level).ToList();
+
+                    foreach (Trigger t in toBeRemoved)
+                    {
+                        Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Removing trigger for {triggers[t]}.");
+                        triggers.Remove(t);
+                    }
+
+                    foreach (KeyValuePair<Trigger, string> kvp in triggers)
+                    {
+                        Trigger t = kvp.Key;
+                        string map = kvp.Value;
+
+                        if (!level.IsInBounds(t)) {
+                            Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Would've created tracker for {map} but OOB.");
+                            continue;
+                        } else {
+                            Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Adding tracker for {map}.");
+                        }
+
+                        NavPointer tracker = new NavPointer(t, map);
+
+                        tracker.Active = activeTrackers.Contains(map);
+                        Trackers.Add(tracker);
+                        level.Add(tracker);
+                    }
                 }
 
-                foreach (KeyValuePair<Trigger, string> kvp in triggers)
-                {
-                    Trigger t = kvp.Key;
-                    string map = kvp.Value;
-
-                    if (!level.IsInBounds(t))
+                foreach (var triggerInfo in mapDataTriggers) {
+                    if (Trackers.Exists(t => t.Map == triggerInfo.map)) {
+                        Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Skipping triggerInfo for {triggerInfo.map}.");
                         continue;
+                    } else {
+                        Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Adding non-entity tracker for {triggerInfo.map}.");
+                    }
 
-                    NavPointer tracker = new NavPointer(t, map);
-
-                    tracker.Active = activeTrackers.Contains(map);
+                    NavPointer tracker = new NavPointer(null, triggerInfo.map, new Vector2(triggerInfo.x, triggerInfo.y));
+                    tracker.Active = activeTrackers.Contains(triggerInfo.map);
                     Trackers.Add(tracker);
                     level.Add(tracker);
                 }
@@ -141,6 +165,7 @@ namespace Celeste.Mod.CollabLobbyUI {
 
         private void Level_OnEnter(Session session, bool fromSaveData)
         {
+            //Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Level_OnEnter.");
             triggers.Clear();
             Trackers.Clear();
             if (!Enabled) return;
@@ -165,6 +190,28 @@ namespace Celeste.Mod.CollabLobbyUI {
                     activeTrackers.Add(t.Map);
             }
             Trackers.Clear();
+        }
+
+        private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
+            string sid = level.Session.Area.GetSID();
+
+            //Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Level_OnLoadLevel {sid} ({isFromLoader}).");
+
+            if (isFromLoader) {
+                mapDataTriggers = null;
+                if (!Enabled) return;
+                if (!string.IsNullOrEmpty(sid) && CollabMapDataProcessor.ChapterPanelTriggers.ContainsKey(sid))
+                    mapDataTriggers = CollabMapDataProcessor.ChapterPanelTriggers[sid];
+            } else {
+                if (!Enabled) return;
+                activeTrackers.Clear();
+                foreach (var t in Trackers) {
+                    if (!string.IsNullOrEmpty(t.Map) && t.Active)
+                        activeTrackers.Add(t.Map);
+                }
+                Trackers.Clear();
+                TryRemoveMenu(level);
+            }
         }
 
         public override void Unload() {

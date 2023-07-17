@@ -1,11 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Monocle;
-using System;
-using YamlDotNet.Serialization;
 using Color = Microsoft.Xna.Framework.Color;
 
-namespace Celeste.Mod.CollabLobbyUI
-{
+namespace Celeste.Mod.CollabLobbyUI {
     static class CollabLobbyUIUtils
     {
         public static readonly MTexture Gui_Arrow = GFX.Gui["dotarrow_outline"];
@@ -18,7 +16,16 @@ namespace Celeste.Mod.CollabLobbyUI
                 pos = Vector2.Zero;
                 return false;
             }
-            Vector2 posScreen = l.WorldToScreen(e.Center);
+
+            return GetClampedScreenPos(e.Center, l, out pos);
+        }
+
+        public static bool GetClampedScreenPos(Vector2 p, Level l, out Vector2 pos) {
+            if (l == null) {
+                pos = Vector2.Zero;
+                return false;
+            }
+            Vector2 posScreen = l.WorldToScreen(p);
             pos = posScreen.Clamp(
                 32f, 32f,
                 1920f - 32f, 1080f - 32f
@@ -38,7 +45,7 @@ namespace Celeste.Mod.CollabLobbyUI
         /// 
         /// Source: https://stackoverflow.com/a/26890988
         public static int? NullableCompareTo<T>(this T obj, T other) where T : IComparable {
-            var result = obj.CompareTo(other);
+            var result = obj?.CompareTo(other);
             return result != 0 ? result : null;
         }
     }

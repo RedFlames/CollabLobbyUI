@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Celeste.Mod.CollabLobbyUI {
 
@@ -15,21 +16,13 @@ namespace Celeste.Mod.CollabLobbyUI {
             public int Bronze;
         }
 
-        public struct GymLevelInfo
-        {
-            public string[] Tech;
-            public string Flag;
+        public struct ChapterPanelTriggerInfo {
+            public string map;
+            public string level;
+            public int x, y;
         }
 
-        public struct GymTechInfo
-        {
-            public string Difficulty;
-            public string AreaSID;
-            public string Level;
-        }
-
-        public static Dictionary<string, GymLevelInfo> GymLevels = new Dictionary<string, GymLevelInfo>();
-        public static Dictionary<string, GymTechInfo> GymTech = new Dictionary<string, GymTechInfo>();
+        public static Dictionary<string, HashSet<ChapterPanelTriggerInfo>> ChapterPanelTriggers = new Dictionary<string, HashSet<ChapterPanelTriggerInfo>>();
 
         // the structure here is: SilverBerries[LevelSet][SID] = ID of the silver berry in that map.
         // so, to check if all silvers in a levelset have been unlocked, go through all entries in SilverBerries[levelset].
@@ -37,6 +30,7 @@ namespace Celeste.Mod.CollabLobbyUI {
         public static Dictionary<string, SpeedBerryInfo> SpeedBerries = new Dictionary<string, SpeedBerryInfo>();
 
         private string levelName;
+        private int levelX, levelY;
 
         public static HashSet<string> MapsWithSilverBerries = new HashSet<string>();
         public static HashSet<string> MapsWithRainbowBerries = new HashSet<string>();
@@ -51,6 +45,8 @@ namespace Celeste.Mod.CollabLobbyUI {
                     if (levelName.StartsWith("lvl_")) {
                         levelName = levelName.Substring(4);
                     }
+                    levelX = level.AttrInt("x");
+                    levelY = level.AttrInt("y");
                 }
             },
             {
@@ -81,43 +77,50 @@ namespace Celeste.Mod.CollabLobbyUI {
                 "triggers", triggerList => {
                     foreach (BinaryPacker.Element trigger in triggerList.Children) {
                         if(trigger.Name == "CollabUtils2/ChapterPanelTrigger") {
-                            addGymInfoFromChapterPanelTrigger(trigger);
+                            addChapterPanelTrigger(trigger);
                         }
                     }
                 }
             },
             {
                 "entity:FlushelineCollab/LevelEntrance", levelEntrance => {
-                    addGymInfoFromChapterPanelTrigger(levelEntrance);
-                }
-            },
-            {
-                "entity:CollabUtils2/GymMarker", gymMarker => {
-                    string techName = gymMarker.Attr("name");
-                    if (!string.IsNullOrEmpty(techName)) {
-                        GymTech[techName] = new GymTechInfo {
-                            Difficulty = gymMarker.Attr("difficulty", "beginner"),
-                            AreaSID = AreaKey.GetSID(),
-                            Level = levelName
-                        };
-                    }
+                    addChapterPanelTrigger(levelEntrance);
                 }
             }
         };
         }
 
-        private static void addGymInfoFromChapterPanelTrigger(BinaryPacker.Element trigger)
+        private void addChapterPanelTrigger(BinaryPacker.Element trigger)
         {
             string map = trigger.Attr("map");
-            string tech = trigger.Attr("tech");
-            if (!string.IsNullOrEmpty(map) && !string.IsNullOrEmpty(tech))
-            {
-                GymLevels[map] = new GymLevelInfo
-                {
-                    Tech = trigger.Attr("tech").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries),
-                    Flag = trigger.Attr("flag")
-                };
+            string sid = AreaKey.GetSID();
+
+            if (string.IsNullOrEmpty(map) || string.IsNullOrEmpty(sid)) {
+                try {
+                    Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Not processing trigger {sid} / {map}: {trigger.Name} / {trigger.Package} / {string.Join(",", trigger.Attributes.Keys)} / {string.Join(",", trigger.Children.Select(e => e.Name))}.");
+                } catch {
+                    Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Not processing trigger {sid} / {map} (failed some logging)");
+                }
+                return;
             }
+
+            if (!ChapterPanelTriggers.ContainsKey(sid)) {
+                ChapterPanelTriggers[sid] = new HashSet<ChapterPanelTriggerInfo>();
+            }
+
+            HashSet<ChapterPanelTriggerInfo> lobbyTriggers = ChapterPanelTriggers[sid];
+
+            int x = levelX + trigger.AttrInt("x");
+            int y = levelY + trigger.AttrInt("y");
+
+            lobbyTriggers.Add(new ChapterPanelTriggerInfo {
+                map = map,
+                level = levelName,
+                x = x,
+                y = y
+            });
+
+            Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"addChapterPanelTrigger of lobby {sid} room {levelName}: {map} at {x}/{y}.");
         }
 
         public override void Reset()

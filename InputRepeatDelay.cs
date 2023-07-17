@@ -1,7 +1,4 @@
-﻿using Microsoft.Xna.Framework.Input;
-using Monocle;
-
-namespace Celeste.Mod.CollabLobbyUI {
+﻿namespace Celeste.Mod.CollabLobbyUI {
     public class InputRepeatDelay {
         /* A class to implement a button input delay that when held
          * - allows the action to perform right away

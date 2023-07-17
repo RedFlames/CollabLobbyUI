@@ -1,13 +1,10 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Monocle;
 
-namespace Celeste.Mod.CollabLobbyUI.Entities
-{
+namespace Celeste.Mod.CollabLobbyUI.Entities {
     public class NavMenu : Entity
     {
         public CollabLobbyUISettings Settings => CollabLobbyUIModule.Settings;
@@ -234,7 +231,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities
                 if(Settings.ShowProgressInNavMenu)
                 {
                     if (p.hearted)
-                        p.heart_texture.DrawOnCenterLineScaled(back, IconTargetWidth, null, 1f);
+                        p.heart_texture?.DrawOnCenterLineScaled(back, IconTargetWidth, null, 1f);
                     back.X -= IconTargetWidth + InternalPadding;
 
                     if (p.strawberries_collected > 0 || p.strawberries_total > 0)

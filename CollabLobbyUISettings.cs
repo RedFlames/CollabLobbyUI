@@ -1,12 +1,4 @@
-﻿using Celeste.Mod.UI;
-using Microsoft.Xna.Framework.Input;
-using Monocle;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using YamlDotNet.Serialization;
+﻿using Microsoft.Xna.Framework.Input;
 
 namespace Celeste.Mod.CollabLobbyUI {
     public class CollabLobbyUISettings : EverestModuleSettings

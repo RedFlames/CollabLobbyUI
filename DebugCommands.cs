@@ -1,13 +1,7 @@
 ﻿using Celeste.Mod.CollabLobbyUI.Entities;
 using Monocle;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Celeste.Mod.CollabLobbyUI
-{
+namespace Celeste.Mod.CollabLobbyUI {
     public static class DebugCommands
     {
         [Command("clui", "CollabLobbyUI debug")]
@@ -19,6 +13,8 @@ namespace Celeste.Mod.CollabLobbyUI
                 return;
             }
 
+            Engine.Commands.Log($"CollabLobbyUIModule.Instance.mapDataTriggers = {CollabLobbyUIModule.Instance.mapDataTriggers} ({CollabLobbyUIModule.Instance.mapDataTriggers?.Count})");
+            
             Engine.Commands.Log($"CollabLobbyUIModule.Instance.TriggerCount = {CollabLobbyUIModule.Instance.TriggerCount}");
 
             if (CollabLobbyUIModule.Instance.Trackers == null)
@@ -38,6 +34,7 @@ namespace Celeste.Mod.CollabLobbyUI
                 return;
             }
 
+            Engine.Commands.Log($"CollabLobbyUIModule.Instance.mapDataTriggers = {CollabLobbyUIModule.Instance.mapDataTriggers} ({CollabLobbyUIModule.Instance.mapDataTriggers?.Count})");
             Engine.Commands.Log($"CollabLobbyUIModule.Instance.TriggerCount = {CollabLobbyUIModule.Instance.TriggerCount}");
             Engine.Commands.Log($"CollabLobbyUIModule.Instance.Trackers.Count = {CollabLobbyUIModule.Instance.Trackers.Count}");
 
