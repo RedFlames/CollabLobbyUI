@@ -8,31 +8,33 @@ using Monocle;
 namespace Celeste.Mod.CollabLobbyUI.Entities {
     public class NavPointer : Entity
     {
-        public readonly Entity Target = null;
-        public readonly string Map;
-        public readonly AreaData AreaData;
-        public readonly string CleanName;
-        public readonly string IconName;
-        public readonly MTexture Icon;
+        public Entity Target { get; private set; }
+        public string Map { get; private set; }
+        public string Level { get; private set; }
 
-        public readonly AreaStats areaStats;
-        public readonly bool hearted = false;
-        public readonly MTexture heart_texture;
-        public readonly int strawberries_collected;
-        public readonly int strawberries_total;
+        public AreaData AreaData { get; private set; }
+        public string CleanName { get; private set; }
+        public string IconName { get; private set; }
+        public MTexture Icon { get; private set; }
+
+        public AreaStats areaStats { get; private set; }
+        public bool hearted { get; private set; }
+        public MTexture heart_texture { get; private set; }
+        public int strawberries_collected { get; private set; }
+        public int strawberries_total { get; private set; }
         public int StrawberriesUncollected => strawberries_total-strawberries_collected;
         public string StrawberryProgress => getBerryProgressString(strawberries_collected, strawberries_total);
 
         public bool HasTargetPosition => pointToOverride != null || Target != null;
         public Vector2 TargetPosition => pointToOverride ?? Target?.Center ?? Vector2.Zero;
 
-        public readonly bool silvered = false;
-        public readonly bool goldened = false;
-        public readonly int speeded = 0;
+        public bool silvered { get; private set; }
+        public bool goldened { get; private set; }
+        public int speeded { get; private set; }
 
         private Player player;
 
-        public readonly Vector2? pointToOverride;
+        public Vector2? pointToOverride { get; private set; }
 
         public struct SpeedBerryInfo
         {
@@ -41,6 +43,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
             public int Silver;
             public int Bronze;
         }
+
         private static int getRankColor(CollabMapDataProcessor.SpeedBerryInfo speedBerryInfo, long pb)
         {
             float pbSeconds = (float)TimeSpan.FromTicks(pb).TotalSeconds;
@@ -59,20 +62,29 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
             return $"{collected}/{total}";
         }
 
-        public NavPointer(Entity target = null, string map = "", Vector2? pos = null)
-        {
-            AddTag(TagsExt.SubHUD);
+        public NavPointer(Entity target, string map = "") {
             Target = target;
             Map = map;
-            AreaData = AreaDataExt.Get(map);
-            pointToOverride = pos;
+        }
+
+        public NavPointer(CollabMapDataProcessor.ChapterPanelTriggerInfo triggerInfo) {
+            Target = null;
+            Map = triggerInfo.map;
+            pointToOverride = new Vector2(triggerInfo.x, triggerInfo.y);
+            Level = triggerInfo.level;
+        }
+
+        public void Initialize()
+        {
+            AddTag(TagsExt.SubHUD);
+            AreaData = AreaDataExt.Get(Map);
 
             CleanName = AreaData?.Name?.DialogCleanOrNull() ?? Map;
             IconName = AreaData?.Icon;
             Icon = !string.IsNullOrWhiteSpace(IconName) && GFX.Gui.Has(IconName) ? GFX.Gui[IconName] : null;
 
             if (AreaData == null) {
-                Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Failed to find AreaData for {map}.");
+                Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Failed to find AreaData for {Map}.");
                 return;
             }
 
@@ -82,7 +94,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
             strawberries_total = AreaData.Mode[0].TotalStrawberries;
 
             if (areaStats == null) {
-                Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Area stats for {map} not found.");
+                Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Area stats for {Map} not found.");
                 return;
             }
 
@@ -115,7 +127,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
             player = level.Tracker.GetEntity<Player>();
 
             base.Render();
-            bool visible = drawArrowOrCross(Target, level, out Vector2? tPos, out float angle);
+            bool visible = drawArrowOrCross(level, out Vector2? tPos, out float angle);
 
             if (tPos == null)
                 return;
@@ -128,7 +140,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
             ActiveFont.DrawOutline($"{CleanName}", tPos.Value - Vector2.UnitX.Rotate(angle) * 48f, justify, new Vector2(0.7f, 0.7f), Color.White, 0.5f, Color.Black);
         }
 
-        private bool drawArrowOrCross(Entity target, Level level, out Vector2? tPos, out float angle, float scale = 1.0f, Color? color = null)
+        private bool drawArrowOrCross(Level level, out Vector2? tPos, out float angle, float scale = 1.0f, Color? color = null)
         {
             Color col = color ?? Color.White;
 

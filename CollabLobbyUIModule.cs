@@ -146,8 +146,9 @@ namespace Celeste.Mod.CollabLobbyUI {
                         Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Adding tracker for {map}.");
 
                         NavPointer tracker = new NavPointer(t, map);
-
+                        tracker.Initialize();
                         tracker.Active = activeTrackers.Contains(map);
+
                         Trackers.Add(tracker);
                         level.Add(tracker);
                     }
@@ -163,8 +164,10 @@ namespace Celeste.Mod.CollabLobbyUI {
                             Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Adding non-entity tracker for {triggerInfo.map}.");
                         }
 
-                        NavPointer tracker = new NavPointer(null, triggerInfo.map, new Vector2(triggerInfo.x, triggerInfo.y));
+                        NavPointer tracker = new NavPointer(triggerInfo);
+                        tracker.Initialize();
                         tracker.Active = activeTrackers.Contains(triggerInfo.map);
+
                         Trackers.Add(tracker);
                         level.Add(tracker);
                     }
