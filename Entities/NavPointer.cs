@@ -23,6 +23,9 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         public int StrawberriesUncollected => strawberries_total-strawberries_collected;
         public string StrawberryProgress => getBerryProgressString(strawberries_collected, strawberries_total);
 
+        public bool HasTargetPosition => pointToOverride != null || Target != null;
+        public Vector2 TargetPosition => pointToOverride ?? Target?.Center ?? Vector2.Zero;
+
         public readonly bool silvered = false;
         public readonly bool goldened = false;
         public readonly int speeded = 0;
@@ -129,20 +132,16 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         {
             Color col = color ?? Color.White;
 
-            bool onScreen = false;
-            Vector2 pointFrom = level.ScreenToWorld(Engine.Viewport.Bounds.Center.ToVector2());
-            Vector2 pointTo;
-            Vector2 pos;
-
-            if (pointToOverride.HasValue) {
-                pointTo = pointToOverride.Value;
-            } else if (target != null) {
-                pointTo = target.Center;
-            } else {
+            if (!HasTargetPosition) {
                 tPos = null;
                 angle = 0f;
                 return false;
             }
+
+            bool onScreen;
+            Vector2 pointFrom = level.ScreenToWorld(Engine.Viewport.Bounds.Center.ToVector2());
+            Vector2 pointTo = TargetPosition;
+            Vector2 pos;
 
             onScreen = CollabLobbyUIUtils.GetClampedScreenPos(pointTo, level, out pos);
             tPos = pos;

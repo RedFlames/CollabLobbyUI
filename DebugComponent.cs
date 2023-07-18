@@ -72,10 +72,9 @@ namespace Celeste.Mod.CollabLobbyUI {
 
                 foreach (NavPointer tracker in Trackers)
                 {
-                    Vector2? targetPos = tracker.pointToOverride ?? tracker.Target?.Position;
-                    if (targetPos == null)
+                    if (!tracker.HasTargetPosition)
                         continue;
-                    MDraw.Rect(targetPos.Value.X / 8f, targetPos.Value.Y / 8f - 1f, 1f, 1f, Color.HotPink);
+                    MDraw.Rect(tracker.TargetPosition.X / 8f, tracker.TargetPosition.Y / 8f - 1f, 1f, 1f, Color.HotPink);
                 }
 
                 MDraw.SpriteBatch.End();
@@ -92,10 +91,9 @@ namespace Celeste.Mod.CollabLobbyUI {
 
                 foreach (NavPointer tracker in Trackers)
                 {
-                    Vector2? targetPos = tracker.pointToOverride ?? tracker.Target?.Position;
-                    if (!(tracker.Active || CollabLobbyUIModule.Settings.AlwaysShowAllOnDebugMap) || targetPos == null)
+                    if (!(tracker.Active || CollabLobbyUIModule.Settings.AlwaysShowAllOnDebugMap) || !tracker.HasTargetPosition)
                         continue;
-                    Vector2 pos = new(targetPos.Value.X / 8f + 0.5f, targetPos.Value.Y / 8f - 1.5f);
+                    Vector2 pos = new(tracker.TargetPosition.X / 8f + 0.5f, tracker.TargetPosition.Y / 8f - 1.5f);
                     pos -= camera.Position;
                     pos = new((float)Math.Round(pos.X), (float)Math.Round(pos.Y));
                     pos *= camera.Zoom;

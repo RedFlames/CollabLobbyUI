@@ -154,10 +154,10 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                         t.Active = targetValue;
                 }
 
-                if (Settings.ButtonNavTeleport.Pressed && level.Session != null && Module.Trackers[EntrySelected]?.Target != null)
+                if (Settings.ButtonNavTeleport.Pressed && level.Session != null && Module.Trackers[EntrySelected].HasTargetPosition)
                 {
                     level.Session.RespawnPoint = null;
-                    Engine.Scene = new LevelLoader(level.Session, Module.Trackers[EntrySelected].Target.Position);
+                    Engine.Scene = new LevelLoader(level.Session, Module.Trackers[EntrySelected].TargetPosition);
                 }
             }
 
