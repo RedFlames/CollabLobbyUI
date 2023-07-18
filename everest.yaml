@@ -1,5 +1,5 @@
 ﻿- Name: CollabLobbyUI
-  Version: 1.0.3
+  Version: 1.0.4
   DLL: bin/Debug/net452/CollabLobbyUI.dll
   Dependencies:
     - Name: Everest
