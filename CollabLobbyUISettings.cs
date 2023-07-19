@@ -10,6 +10,9 @@ namespace Celeste.Mod.CollabLobbyUI {
 
         public bool ShowProgressInNavMenu { get; set; } = true;
 
+        [SettingSubText("MODOPTIONS_COLLABLOBBYUI_GroupMapsByRooms_HINT")]
+        public bool GroupMapsByRooms { get; set; } = true;
+
         #region Key Bindings
 
         [DefaultButtonBinding(0, Keys.M)]

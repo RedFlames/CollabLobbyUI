@@ -12,6 +12,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         public string Map { get; private set; }
         public string Level { get; private set; }
 
+        public bool IsInOtherRoom { get; private set; }
+
         public AreaData AreaData { get; private set; }
         public string CleanName { get; private set; }
         public string IconName { get; private set; }
@@ -78,6 +80,9 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         {
             AddTag(TagsExt.SubHUD);
             AreaData = AreaDataExt.Get(Map);
+
+            if (!string.IsNullOrEmpty(Level) && Scene is Level level)
+                IsInOtherRoom = level.Session.Level != Level;
 
             CleanName = AreaData?.Name?.DialogCleanOrNull() ?? Map;
             IconName = AreaData?.Icon;
@@ -185,6 +190,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         {
             return a.IconName.NullableCompareTo(b.IconName) ?? a.CleanName.NullableCompareTo(b.CleanName) ?? a.Map.CompareTo(b.Map);
         }
+
+        public override string ToString() => Dialog.Get("COLLABLOBBYUI_Nav_SortByIcon");
     }
 
     public class NavComparerSIDs : IComparer<NavPointer>
@@ -193,6 +200,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         {
             return string.Compare(a.Map, b.Map);
         }
+
+        public override string ToString() => Dialog.Get("COLLABLOBBYUI_Nav_SortBySID");
     }
     public class NavComparerProgress : IComparer<NavPointer>
     {
@@ -206,6 +215,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                 ?? a.CleanName.NullableCompareTo(b.CleanName)
                 ?? a.Map.CompareTo(b.Map);
         }
+
+        public override string ToString() => Dialog.Get("COLLABLOBBYUI_Nav_SortByProgress");
     }
 
     public class NavComparerNames : IComparer<NavPointer>
@@ -213,6 +224,33 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         public int Compare(NavPointer a, NavPointer b)
         {
             return a.CleanName.NullableCompareTo(b.CleanName) ?? a.Map.CompareTo(b.Map);
+        }
+
+        public override string ToString() => Dialog.Get("COLLABLOBBYUI_Nav_SortByName");
+    }
+
+    public class NavComparerOtherRooms : IComparer<NavPointer> {
+        // this uhhhh yea
+        public int Compare(NavPointer a, NavPointer b) {
+            if (CollabLobbyUIModule.Instance?.PossibleRooms?.Count == 0)
+                return 0;
+
+            int posA = CollabLobbyUIModule.Instance.PossibleRooms.IndexOf(a.Level);
+            int posB = CollabLobbyUIModule.Instance.PossibleRooms.IndexOf(b.Level);
+
+            if (posA == -1 && posB > -1)
+                return -1;
+            if (posB == -1 && posA > -1)
+                return 1;
+            if (posA == -1 && posB == -1)
+                return 0;
+
+            if (a.IsInOtherRoom)
+                posA++;
+            if (b.IsInOtherRoom)
+                posB++;
+
+            return posA.CompareTo(posB);
         }
     }
 }

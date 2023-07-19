@@ -14,6 +14,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         private Overlay _DummyOverlay = new PauseUpdateOverlay();
 
         public static readonly Color ColorUI = new(0, 0, 0, 150);
+        public static readonly Color LightOrange = Color.Lerp(Color.Orange, Color.White, .5f);
 
         private const float TextScale = .3f;
         private const float ListWidth = 600;
@@ -37,25 +38,46 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
             set
             {
                 if (value < 0)
-                    entrySelected = EntryTotal - 1;
+                    entrySelected = EntryTotal > 0 ? EntryTotal - 1 : 0;
                 else if (value >= EntryTotal)
                     entrySelected = 0;
                 else
                     entrySelected = value;
-                Module.entrySelected = value;
+                try {
+                    entrySelectedRef = SortedTrackers.ElementAt(entrySelected);
+                } catch (System.ArgumentOutOfRangeException) {
+                    // one time I got one of these but I can't reproduce it, so... ¯\_(ツ)_/¯
+                    // in theory after the constructor and before this ever gets run,
+                    // SortedTrackers should be same length as Module.Trackers?...
+                    Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Caught ArgumentOutOfRangeException in EntrySelected setter from ElementAt. ({value}/{entrySelected}/{EntryTotal})");
+                }
+                Module.EntrySelected = entrySelectedRef;
             }
         }
         private int entrySelected = 0;
+        private NavPointer entrySelectedRef = null;
 
-        private IComparer<NavPointer>[] comparers = new IComparer<NavPointer>[]
+        private readonly IComparer<NavPointer>[] comparers = new IComparer<NavPointer>[]
         {
             new NavComparerIcons(),
             new NavComparerNames(),
             new NavComparerSIDs(),
             new NavComparerProgress()
         };
+        public NavComparerOtherRooms RoomSorter { get; private set; } = new NavComparerOtherRooms();
+
+        private readonly Color[] roomColoring = new Color[] {
+            Color.White,
+            Color.LightCoral,
+            Color.LightSeaGreen,
+            Color.LightSalmon,
+            Color.LightGray
+        };
 
         private int _useComparer = 0;
+        private bool showSorterName;
+        public IComparer<NavPointer> CurrentComparer => comparers[_useComparer];
+        public IOrderedEnumerable<NavPointer> SortedTrackers { get; private set; }
 
         private bool _IsActive;
         public bool IsActive
@@ -71,13 +93,14 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                     // If we're in a level, add a dummy overlay to prevent the pause menu from handling input.
                     if (Engine.Scene is Level level)
                         level.Overlay = _DummyOverlay;
-                    Module.Trackers.Sort(comparers[_useComparer]);
+                    ApplySorting();
                 }
                 else
                 {
                     if (Engine.Scene is Level level && level.Overlay == _DummyOverlay)
                         level.Overlay = null;
                 }
+                showSorterName = false;
 
                 _IsActive = value;
             }
@@ -95,14 +118,22 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
 
         protected InputRepeatDelay UpDownRepeatDelay;
 
-        public NavMenu(int selected = 0) {
+        public NavMenu(NavPointer selected = null) {
             AddTag(Tags.HUD);
-            EntrySelected = selected;
-            Module.Trackers.Sort(comparers[_useComparer]);
+            entrySelectedRef = selected;
+            ApplySorting();
+            EntrySelected = entrySelectedRef == null ? 0 : SortedTrackers.ToList().IndexOf(entrySelectedRef);
             UpDownRepeatDelay = new(Settings.ButtonNavUp, Settings.ButtonNavDown);
             BerryProgressWidth = ActiveFont.Measure(NavPointer.getBerryProgressString(0, 10)).X;
         }
 
+        public void ApplySorting() {
+            if (!Settings.GroupMapsByRooms || (Module?.PossibleRooms?.Count ?? 0) <= 1) {
+                SortedTrackers = Module.Trackers.OrderBy(x => x, CurrentComparer);
+            } else {
+                SortedTrackers = Module.Trackers.OrderBy(x => x, RoomSorter).ThenBy(x => x, CurrentComparer);
+            }
+        }
 
         public override void Update()
         {
@@ -137,45 +168,50 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
 
                 if (Settings.ButtonNavToggleSort.Pressed)
                 {
-                    _useComparer = (_useComparer + 1) % (comparers.Length - (Settings.ShowProgressInNavMenu ? 1 : 0));
-                    Module.Trackers.Sort(comparers[_useComparer]);
+                    _useComparer = (_useComparer + 1) % (comparers.Length - (Settings.ShowProgressInNavMenu ? 0 : 1));
+                    ApplySorting();
                     EntrySelected = 0;
+                    showSorterName = true;
                 }
 
-                if (Settings.ButtonNavToggleItem.Pressed)
+                if (Settings.ButtonNavToggleItem.Pressed && entrySelectedRef != null)
                 {
-                    Module.Trackers[EntrySelected].Active = !Module.Trackers[EntrySelected].Active;
+                    entrySelectedRef.Active = !entrySelectedRef.Active;
                 }
 
                 if (Settings.ButtonNavClearAll.Pressed)
                 {
-                    bool targetValue = Module.Trackers.All(t => !t.Active);
+                    bool targetValue = Module.Trackers.TrueForAll(t => !t.Active);
                     foreach (var t in Module.Trackers)
                         t.Active = targetValue;
                 }
 
-                if (Settings.ButtonNavTeleport.Pressed && level.Session != null && Module.Trackers[EntrySelected].HasTargetPosition)
+                if (Settings.ButtonNavTeleport.Pressed && level.Session != null && entrySelectedRef != null && entrySelectedRef.HasTargetPosition)
                 {
                     level.Session.RespawnPoint = null;
-                    if (Module.Trackers[EntrySelected].Level != null)
-                        level.Session.Level = Module.Trackers[EntrySelected].Level;
-                    Engine.Scene = new LevelLoader(level.Session, Module.Trackers[EntrySelected].TargetPosition);
+                    if (entrySelectedRef.Level != null)
+                        level.Session.Level = entrySelectedRef.Level;
+                    Engine.Scene = new LevelLoader(level.Session, entrySelectedRef.TargetPosition);
                 }
             }
 
             if (Settings.ButtonNavNext.Released)
             {
                 EntrySelected++;
-                foreach (var t in Module.Trackers)
-                    t.Active = false;
-                Module.Trackers[EntrySelected].Active = true;
+                if (entrySelectedRef != null) {
+                    foreach (var t in Module.Trackers)
+                        t.Active = false;
+                    entrySelectedRef.Active = true;
+                }
             }
             else if (Settings.ButtonNavPrev.Released)
             {
                 EntrySelected--;
-                foreach (var t in Module.Trackers)
-                    t.Active = false;
-                Module.Trackers[EntrySelected].Active = true;
+                if (entrySelectedRef != null) {
+                    foreach (var t in Module.Trackers)
+                        t.Active = false;
+                    entrySelectedRef.Active = true;
+                }
             }
 
             if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (IsActive && Settings.ButtonNavMenuClose.Released))
@@ -189,7 +225,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         public override void Render()
         {
             base.Render();
-            if (Engine.Scene is not Level level)
+            if (Engine.Scene is not Level)
                 return;
 
             if (!IsActive)
@@ -209,9 +245,17 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
             if (endAt > Module.Trackers.Count)
                 endAt = Module.Trackers.Count;
 
-            for (int i = startAt; i < endAt; i++)
+            // I did horrible things to a nice simple
+            // "for (int i = startAt; i < endAt; i++)"
+            // in the name of extra sorting
+            IEnumerator<NavPointer> iter = SortedTrackers.GetEnumerator();
+            int i = 0;
+            while (i < startAt && iter.MoveNext())
+                i++;
+
+            while (iter.MoveNext() && i < endAt)
             {
-                NavPointer p = Module.Trackers[i];
+                NavPointer p = iter.Current;
                 bool isOn = p.Active;
 
                 if (i == EntrySelected)
@@ -228,7 +272,17 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                 p.Icon?.DrawOnCenterLineScaled(pos, IconTargetWidth);
                 pos.X += IconTargetWidth + InternalPadding;
 
-                ActiveFont.Draw(p.CleanName, pos, Vector2.UnitY / 2f, Vector2.One * TextScale, i == EntrySelected ? Color.Gold : isOn ? Color.Lerp(Color.Orange, Color.White, .5f) : Color.White);
+                int colorNum = 0;
+                if (Settings.GroupMapsByRooms && !string.IsNullOrEmpty(p.Level)) {
+                    int idx = Module.PossibleRooms.IndexOf(p.Level);
+                    if (idx > -1)
+                        colorNum = idx;
+                }
+                if (colorNum > roomColoring.Length - 1)
+                    colorNum = roomColoring.Length - 1;
+                Color thisColor = Color.Lerp(roomColoring[colorNum], Color.White, .5f);
+
+                ActiveFont.Draw(p.CleanName, pos, Vector2.UnitY / 2f, Vector2.One * TextScale, i == EntrySelected ? Color.Gold : isOn ? LightOrange : p.Target == null ? thisColor : Color.White);
 
                 if(Settings.ShowProgressInNavMenu)
                 {
@@ -258,6 +312,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                 }
                 
                 y += EntryHeight;
+                i++;
             }
 
             string overflowCount = "";
@@ -283,6 +338,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                 .Replace("((toggle_item))", toggleBind)
                 .Replace("((teleport))", teleportBind)
                 .Replace("((toggle_sort))", toggleSort)
+                .Replace("((sort_string))", showSorterName ? CurrentComparer.ToString() : Dialog.Get("COLLABLOBBYUI_Nav_ButtonPrompt_Sort"))
                 .Replace("((clear_all))", toggleClear);
 
             if ((ActiveFont.Measure(overflowCount).X + ActiveFont.Measure(buttonPrompt).X) * TextScale + 32f + InternalPadding * 2 > ListWidth)

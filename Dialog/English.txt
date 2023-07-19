@@ -36,5 +36,14 @@
 	MODOPTIONS_COLLABLOBBYUI_EnableOnDebugMap=			Enable on Debug Map
 	MODOPTIONS_COLLABLOBBYUI_AlwaysShowAllOnDebugMap=			Always Show All on Debug Map
 	MODOPTIONS_COLLABLOBBYUI_ShowProgressInNavMenu=			Show Map Progress in Nav Menu
+	MODOPTIONS_COLLABLOBBYUI_GroupMapsByRooms=			Group Maps by Rooms
+	MODOPTIONS_COLLABLOBBYUI_GroupMapsByRooms_HINT= (For Lobbies with more than one room)
 
-	COLLABLOBBYUI_Nav_ButtonPrompt= ((toggle_item)): Entry On/Off. ((teleport)): Teleport. ((toggle_sort)): Sort modes. ((clear_all)): Clear/Select ALL.
+	COLLABLOBBYUI_Nav_SortByIcon= by Icon
+	COLLABLOBBYUI_Nav_SortByName= by Name
+	COLLABLOBBYUI_Nav_SortBySID= by SID
+	COLLABLOBBYUI_Nav_SortByProgress= by Progress
+
+
+	COLLABLOBBYUI_Nav_ButtonPrompt= ((toggle_item)): Entry On/Off. ((teleport)): Teleport. ((toggle_sort)): ((sort_string)). ((clear_all)): Clear/Select ALL.
+	COLLABLOBBYUI_Nav_ButtonPrompt_Sort=Sort modes

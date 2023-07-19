@@ -9,7 +9,7 @@ using Monocle;
 namespace Celeste.Mod.CollabLobbyUI {
     public class CollabLobbyUIModule : EverestModule {
         
-        public static CollabLobbyUIModule Instance;
+        public static CollabLobbyUIModule Instance { get; private set; }
 
         public override Type SettingsType => typeof(CollabLobbyUISettings);
         public static CollabLobbyUISettings Settings => (CollabLobbyUISettings) Instance._Settings;
@@ -20,6 +20,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             set => Settings.Enabled = value;
         }
         private bool oldEnabled = false;
+        public List<string> PossibleRooms { get; private set; } = new List<string>();
 
         private string mapDataTriggersFromSID = "";
         public HashSet<CollabMapDataProcessor.ChapterPanelTriggerInfo> mapDataTriggers = null;
@@ -27,14 +28,14 @@ namespace Celeste.Mod.CollabLobbyUI {
         private readonly Dictionary<Trigger, string> triggers = new();
         public int TriggerCount => triggers?.Count ?? 0;
 
-        public readonly List<NavPointer> Trackers = new();
+        public List<NavPointer> Trackers { get; private set; } = new();
         private readonly HashSet<string> activeTrackers = new();
 
-        public int entrySelected = 0;
+        public NavPointer EntrySelected { get; set; }
 
-        public NavMenu Menu;
+        public NavMenu Menu { get; private set; }
 
-        public DebugComponent DebugMap;
+        public DebugComponent DebugMap { get; private set; }
 
         public CollabLobbyUIModule() {
             Instance = this;
@@ -154,6 +155,9 @@ namespace Celeste.Mod.CollabLobbyUI {
                     }
                 }
 
+                if (!PossibleRooms.Contains(level.Session.Level))
+                    PossibleRooms.Add(level.Session.Level);
+
                 // create trackers for ChapterPanelTrigger locations that we only know from the mapdata processor
                 if (mapDataTriggers != null) {
                     foreach (var triggerInfo in mapDataTriggers) {
@@ -170,6 +174,9 @@ namespace Celeste.Mod.CollabLobbyUI {
 
                         Trackers.Add(tracker);
                         level.Add(tracker);
+
+                        if (!string.IsNullOrEmpty(triggerInfo.level) && !PossibleRooms.Contains(triggerInfo.level))
+                            PossibleRooms.Add(triggerInfo.level);
                     }
                 }
             }
@@ -177,7 +184,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             if (Menu == null || Menu.Scene != level)
             {
                 Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Recreating NavMenu.");
-                level.Add(Menu = new NavMenu(entrySelected));
+                level.Add(Menu = new NavMenu(EntrySelected));
             }
         }
 
@@ -193,16 +200,18 @@ namespace Celeste.Mod.CollabLobbyUI {
         {
             triggers.Clear();
             Trackers.Clear();
-            entrySelected = 0;
+            PossibleRooms.Clear();
+            EntrySelected = null;
         }
 
         private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
         {
             triggers.Clear();
             Trackers.Clear();
+            PossibleRooms.Clear();
             activeTrackers.Clear();
             TryRemoveMenu(level);
-            entrySelected = 0;
+            EntrySelected = null;
         }
 
         private void Player_OnSpawn(Player obj)
@@ -211,6 +220,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             if (Trackers.Count > 0) {
                 RememberActiveTrackers();
                 Trackers.Clear();
+                PossibleRooms.Clear();
             }
         }
 
@@ -223,6 +233,7 @@ namespace Celeste.Mod.CollabLobbyUI {
                 if (Trackers.Count > 0) {
                     RememberActiveTrackers();
                     Trackers.Clear();
+                    PossibleRooms.Clear();
                 }
                 TryRemoveMenu(level);
             }
