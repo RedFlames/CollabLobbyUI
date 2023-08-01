@@ -80,7 +80,7 @@ namespace Celeste.Mod.CollabLobbyUI {
                 level = (Level) Engine.Scene;
             if (Menu != null)
             {
-                Logger.Log(LogLevel.Info, "CollabLobbyUI", $"Removing NavMenu {Menu}.");
+                Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Removing NavMenu {Menu}.");
                 Menu.IsActive = false;
                 level?.Remove(Menu);
                 Menu = null;
@@ -120,7 +120,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             if (!Enabled)
                 return;
 
-            if (triggers?.Count == 0 && mapDataTriggers?.Count == 0)
+            if ((triggers == null || triggers.Count == 0) && (mapDataTriggers == null || mapDataTriggers.Count == 0))
             {
                 if (Menu != null)
                     TryRemoveMenu(level);
@@ -183,7 +183,7 @@ namespace Celeste.Mod.CollabLobbyUI {
 
             if (Menu == null || Menu.Scene != level)
             {
-                Logger.Log(LogLevel.Warn, "CollabLobbyUI", $"Recreating NavMenu.");
+                Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Recreating NavMenu.");
                 level.Add(Menu = new NavMenu(EntrySelected));
             }
         }

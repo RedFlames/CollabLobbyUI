@@ -44,7 +44,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                 else
                     entrySelected = value;
                 try {
-                    entrySelectedRef = SortedTrackers.ElementAt(entrySelected);
+                    if (EntryTotal > 0)
+                        entrySelectedRef = SortedTrackers.ElementAt(entrySelected);
                 } catch (System.ArgumentOutOfRangeException) {
                     // one time I got one of these but I can't reproduce it, so... ¯\_(ツ)_/¯
                     // in theory after the constructor and before this ever gets run,
@@ -122,7 +123,8 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
             AddTag(Tags.HUD);
             entrySelectedRef = selected;
             ApplySorting();
-            EntrySelected = entrySelectedRef == null ? 0 : SortedTrackers.ToList().IndexOf(entrySelectedRef);
+            List<NavPointer> indexList = SortedTrackers.ToList();
+            EntrySelected = entrySelectedRef == null || !indexList.Contains(entrySelectedRef) ? 0 : indexList.IndexOf(entrySelectedRef);
             UpDownRepeatDelay = new(Settings.ButtonNavUp, Settings.ButtonNavDown);
             BerryProgressWidth = ActiveFont.Measure(NavPointer.getBerryProgressString(0, 10)).X;
         }
