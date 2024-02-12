@@ -25,7 +25,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         private const float IconTargetWidth = 24f;
         private const float InternalPadding = 4f;
         private const int EntryListLength = 24;
-        private float BerryProgressWidth = 32f;
+        private readonly float BerryProgressWidth;
         private int EntryTotal => Module?.Trackers?.Count ?? 0;
         public int EntrySelected
         {

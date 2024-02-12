@@ -71,7 +71,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
         public void Initialize()
         {
             AddTag(TagsExt.SubHUD);
-            AreaData = AreaDataExt.Get(Map);
+            AreaData = AreaData.Get(Map);
 
             if (!string.IsNullOrEmpty(Level) && Scene is Level level)
                 IsInOtherRoom = level.Session.Level != Level;
@@ -95,23 +95,23 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                 return;
             }
 
-            heart_texture = MTN.Journal.GetOrDefault("CollabUtils2Hearts/" + AreaData.GetLevelSet(), MTN.Journal["heartgem0"]);
+            heart_texture = MTN.Journal.GetOrDefault("CollabUtils2Hearts/" + AreaData.LevelSet, MTN.Journal["heartgem0"]);
             hearted = areaStats.Modes[0].HeartGem;
             if (areaStats.Modes[0].Strawberries.Any(berry => AreaData.Mode[0].MapData.Goldenberries.Any(golden => golden.ID == berry.ID && golden.Level.Name == berry.Level)))
             {
                 goldened = true;
             }
 
-            if ((CollabMapDataProcessor.SilverBerries?.TryGetValue(AreaData.GetLevelSet(), out Dictionary<string, EntityID> levelSetBerries) ?? false)
-                && (levelSetBerries?.TryGetValue(AreaData.GetSID(), out EntityID berryID) ?? false)
+            if ((CollabMapDataProcessor.SilverBerries?.TryGetValue(AreaData.LevelSet, out Dictionary<string, EntityID> levelSetBerries) ?? false)
+                && (levelSetBerries?.TryGetValue(AreaData.SID, out EntityID berryID) ?? false)
                 && areaStats.Modes[0].Strawberries.Contains(berryID))
             {
                 silvered = true;
                 goldened = false;
             }
 
-            if ((CollabMapDataProcessor.SpeedBerries?.TryGetValue(areaStats.GetSID(), out CollabMapDataProcessor.SpeedBerryInfo speedBerryInfo) ?? false)
-                && CollabModule.Instance.SaveData.SpeedBerryPBs.TryGetValue(areaStats.GetSID(), out long speedBerryPB))
+            if ((CollabMapDataProcessor.SpeedBerries?.TryGetValue(areaStats.SID, out CollabMapDataProcessor.SpeedBerryInfo speedBerryInfo) ?? false)
+                && CollabModule.Instance.SaveData.SpeedBerryPBs.TryGetValue(areaStats.SID, out long speedBerryPB))
             {
                 speeded = getRankColor(speedBerryInfo, speedBerryPB);
             }
