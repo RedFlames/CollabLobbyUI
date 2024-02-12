@@ -11,9 +11,9 @@ namespace Celeste.Mod.CollabLobbyUI {
         public struct SpeedBerryInfo
         {
             public EntityID ID;
-            public int Gold;
-            public int Silver;
-            public int Bronze;
+            public float Gold;
+            public float Silver;
+            public float Bronze;
         }
 
         public struct ChapterPanelTriggerInfo {
@@ -67,9 +67,9 @@ namespace Celeste.Mod.CollabLobbyUI {
                 "entity:CollabUtils2/SpeedBerry", speedBerry => {
                     SpeedBerries[AreaKey.GetSID()] = new SpeedBerryInfo() {
                         ID = new EntityID(levelName, speedBerry.AttrInt("id")),
-                        Gold = speedBerry.AttrInt("goldTime"),
-                        Silver = speedBerry.AttrInt("silverTime"),
-                        Bronze = speedBerry.AttrInt("bronzeTime")
+                        Gold = speedBerry.AttrFloat("goldTime"),
+                        Silver = speedBerry.AttrFloat("silverTime"),
+                        Bronze = speedBerry.AttrFloat("bronzeTime")
                     };
                 }
             },

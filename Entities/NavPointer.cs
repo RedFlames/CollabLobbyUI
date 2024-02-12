@@ -38,14 +38,6 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
 
         public Vector2? pointToOverride { get; private set; }
 
-        public struct SpeedBerryInfo
-        {
-            public EntityID ID;
-            public int Gold;
-            public int Silver;
-            public int Bronze;
-        }
-
         private static int getRankColor(CollabMapDataProcessor.SpeedBerryInfo speedBerryInfo, long pb)
         {
             float pbSeconds = (float)TimeSpan.FromTicks(pb).TotalSeconds;
@@ -109,7 +101,7 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
             {
                 goldened = true;
             }
-            var copy_to_debug = CollabModule.Instance.SaveData.SpeedBerryPBs;
+
             if ((CollabMapDataProcessor.SilverBerries?.TryGetValue(AreaData.GetLevelSet(), out Dictionary<string, EntityID> levelSetBerries) ?? false)
                 && (levelSetBerries?.TryGetValue(AreaData.GetSID(), out EntityID berryID) ?? false)
                 && areaStats.Modes[0].Strawberries.Contains(berryID))
@@ -117,8 +109,9 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                 silvered = true;
                 goldened = false;
             }
+
             if ((CollabMapDataProcessor.SpeedBerries?.TryGetValue(areaStats.GetSID(), out CollabMapDataProcessor.SpeedBerryInfo speedBerryInfo) ?? false)
-                && copy_to_debug.TryGetValue(areaStats.GetSID(), out long speedBerryPB))
+                && CollabModule.Instance.SaveData.SpeedBerryPBs.TryGetValue(areaStats.GetSID(), out long speedBerryPB))
             {
                 speeded = getRankColor(speedBerryInfo, speedBerryPB);
             }
