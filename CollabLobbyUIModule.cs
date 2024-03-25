@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Celeste.Mod.CollabLobbyUI.Entities;
 using Celeste.Mod.CollabUtils2.Triggers;
+using Celeste.Mod.Meta;
 using Microsoft.Xna.Framework;
 using Monocle;
 
@@ -21,6 +22,8 @@ namespace Celeste.Mod.CollabLobbyUI {
         }
         private bool oldEnabled = false;
         public List<string> PossibleRooms { get; private set; } = new List<string>();
+
+        private CollabLobbyUIMeta? currentMapMeta = null;
 
         private string mapDataTriggersFromSID = "";
         public HashSet<CollabMapDataProcessor.ChapterPanelTriggerInfo> mapDataTriggers = null;
@@ -67,10 +70,22 @@ namespace Celeste.Mod.CollabLobbyUI {
         {
             orig(self, data, offset);
 
+            string map = data.Attr("map");
+            string id = data.ID.ToString();
+
             if (self is ChapterPanelTrigger)
             {
-                triggers[self] = data.Attr("map");
-                Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Constructored trigger for {data.Attr("map")}.");
+                if (map.Length > 0 && (currentMapMeta?.IgnoreMaps?.Contains(map) ?? false)) {
+                    Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Ignoring trigger ctor for {map} because it was in meta.");
+                    return;
+                }
+
+                if (id.Length > 0 && (currentMapMeta?.IgnoreIDs?.Contains(id) ?? false)) {
+                    Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Ignoring trigger ctor for {id} because it was in meta.");
+                    return;
+                }
+                triggers[self] = map;
+                Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"Constructored trigger for {map}.");
             }
         }
 
@@ -202,6 +217,10 @@ namespace Celeste.Mod.CollabLobbyUI {
             Trackers.Clear();
             PossibleRooms.Clear();
             EntrySelected = null;
+            if (Everest.Content.TryGet("Maps/" + session?.MapData?.Filename + ".collablobbyui.meta",
+                out ModAsset metadata) && metadata.TryDeserialize(out CollabLobbyUIMeta loaded)) {
+                currentMapMeta = loaded;
+            }
         }
 
         private void Level_OnExit(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
@@ -212,6 +231,7 @@ namespace Celeste.Mod.CollabLobbyUI {
             activeTrackers.Clear();
             TryRemoveMenu(level);
             EntrySelected = null;
+            // currentMapMeta = null;
         }
 
         private void Player_OnSpawn(Player obj)
@@ -226,6 +246,13 @@ namespace Celeste.Mod.CollabLobbyUI {
 
         private void Level_OnLoadLevel(Level level, Player.IntroTypes playerIntro, bool isFromLoader) {
             if (!Enabled) return;
+
+            currentMapMeta = null;
+
+            if (Everest.Content.TryGet("Maps/" + level?.Session?.MapData?.Filename + ".collablobbyui.meta",
+                out ModAsset metadata) && metadata.TryDeserialize(out CollabLobbyUIMeta loaded)) {
+                currentMapMeta = loaded;
+            }
 
             if (isFromLoader) {
                 GetMapDataTriggersForSID(level.Session.Area.GetSID());
@@ -248,6 +275,18 @@ namespace Celeste.Mod.CollabLobbyUI {
 
             mapDataTriggersFromSID = sid;
             mapDataTriggers = CollabMapDataProcessor.ChapterPanelTriggers[sid];
+
+            if (currentMapMeta?.IgnoreMaps?.Length > 0) {
+                foreach (var mapName in currentMapMeta.IgnoreMaps) {
+                    mapDataTriggers.RemoveWhere(tr => tr.map == mapName);
+                }
+            }
+
+            if (currentMapMeta?.IgnoreIDs?.Length > 0) {
+                foreach (var triggerID in currentMapMeta.IgnoreIDs) {
+                    mapDataTriggers.RemoveWhere(tr => tr.id == triggerID);
+                }
+            }
         }
 
         //copied
@@ -257,5 +296,10 @@ namespace Celeste.Mod.CollabLobbyUI {
 
             context.Add<CollabMapDataProcessor>();
         }
+    }
+
+    public class CollabLobbyUIMeta : IMeta {
+        public string[] IgnoreMaps { get; set; } = null;
+        public string[] IgnoreIDs { get; set; } = null;
     }
 }

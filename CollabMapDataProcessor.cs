@@ -19,6 +19,7 @@ namespace Celeste.Mod.CollabLobbyUI {
         public struct ChapterPanelTriggerInfo {
             public string map;
             public string level;
+            public string id;
             public int x, y;
         }
 
@@ -94,6 +95,7 @@ namespace Celeste.Mod.CollabLobbyUI {
         {
             string map = trigger.Attr("map");
             string sid = AreaKey.GetSID();
+            string trID = trigger.Attr("id");
 
             if (string.IsNullOrEmpty(map) || string.IsNullOrEmpty(sid)) {
                 try {
@@ -117,10 +119,11 @@ namespace Celeste.Mod.CollabLobbyUI {
                 map = map,
                 level = levelName,
                 x = x,
-                y = y
+                y = y,
+                id = trID
             });
 
-            Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"addChapterPanelTrigger of lobby {sid} room {levelName}: {map} at {x}/{y}.");
+            Logger.Log(LogLevel.Verbose, "CollabLobbyUI", $"addChapterPanelTrigger of lobby {sid} room {levelName}: {map} at {x}/{y} with id {trID}.");
         }
 
         public override void Reset()
