@@ -216,12 +216,13 @@ namespace Celeste.Mod.CollabLobbyUI.Entities {
                 }
             }
 
-            if (Settings.ButtonNavMenu.Released || MInput.Keyboard.Released(Keys.Escape) || (IsActive && Settings.ButtonNavMenuClose.Released))
+            if (Settings.ButtonNavMenu.Released)
             {
                 IsActive = !IsActive;
+            } else if (IsActive && (MInput.Keyboard.Released(Keys.Escape) || Settings.ButtonNavMenuClose.Released))
+            {
+                IsActive = false;
             }
-
-
         }
 
         public override void Render()
